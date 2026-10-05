@@ -343,7 +343,7 @@ var ESTADO = { csv: "", nombre: "", ejecucion: null };
 
 function normalizar(valor){
   if (valor === null || valor === undefined) return "";
-  var texto = String(valor).trim();
+  var texto = String(valor).split("\ufeff").join("").trim();
   if (!texto) return "";
   return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, " ");
 }
@@ -832,14 +832,24 @@ function descargarZip(){
 function leerFichero(archivo){
   var lector = new FileReader();
   lector.onload = function(){
-    ESTADO.csv = String(lector.result);
+    var buffer = lector.result;
+    var texto = "";
+    if (buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
+      buffer = buffer.slice(3);
+    }
+    try {
+      texto = new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+    } catch (error) {
+      texto = new TextDecoder("windows-1252").decode(buffer);
+    }
+    ESTADO.csv = texto;
     ESTADO.nombre = archivo.name;
     document.getElementById("nombreFichero").value = archivo.name;
     document.getElementById("pegador").value = "";
     avisos("Cargado " + archivo.name + ". Pulsa Generar y consultar ficheros", "ok");
     ejecutar();
   };
-  lector.readAsText(archivo, "utf-8");
+  lector.readAsArrayBuffer(archivo);
 }
 
 function ejecutar(){

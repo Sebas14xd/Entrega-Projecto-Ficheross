@@ -56,12 +56,28 @@ def normalizar_encabezados(encabezados):
     return mapa
 
 
+CODIFICACIONES = ["utf-8", "cp1252", "latin-1"]
+MARCA_BOM = b"\xef\xbb\xbf"
+
+
+def leer_texto(ruta):
+    with open(ruta, "rb") as manejador:
+        bruto = manejador.read()
+    if bruto.startswith(MARCA_BOM):
+        bruto = bruto[len(MARCA_BOM) :]
+    for codificacion in CODIFICACIONES:
+        try:
+            return bruto.decode(codificacion)
+        except UnicodeDecodeError:
+            continue
+    return bruto.decode("latin-1", "replace")
+
+
 def leer_reservas(ruta_o_texto, es_texto=False):
     if es_texto:
         contenido = ruta_o_texto
     else:
-        with io.open(ruta_o_texto, "r", encoding="utf-8-sig", newline="") as manejador:
-            contenido = manejador.read()
+        contenido = leer_texto(ruta_o_texto)
     if not contenido.strip():
         return []
     delimitador = detectar_delimitador(contenido)
