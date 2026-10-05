@@ -4,6 +4,13 @@ Complemento del README con el detalle de diseno, las decisiones tomadas y el
 momento de cada una, para dejar constancia de las migraciones y cambios
 segun pide el enunciado.
 
+## 0 Integrantes y reparto
+
+| Integrante | Reparto |
+| ---------- | ------- |
+| Marco | Catalogo de paises e IATA, entidad de reserva, identificador unico y localizador de coincidencias, interfaz web y documentacion |
+| Sebas | Lectura del CSV de entrada, agrupacion por pais de destino y generacion de los ficheros AirTortilla_XX_YYYY_MM_DD, CSV de ejemplo y pruebas automaticas |
+
 ## 1 Requisitos que cubre la solucion
 
 | Requisito | Donde se resuelve |
@@ -243,3 +250,4 @@ fichero por grupo
 | --------- | ---------- | ----------------------------------------------------------------------- |
 | 1.0.0     | 2026-10-05 | Primera entrega, lectura de CSV, identificador, localizador, agrupado por pais de destino, interfaz web con las dos modalidades |
 | 1.0.1     | 2026-10-05 | Las lineas invalidas ya no generan ficheros, el numero de linea pasa a ser el fisico del CSV, la modalidad linea a linea reconstruye el fichero de destino y calcula los localizadores sobre lo ya procesado, subida de ficheros corregida para no pisar el CSV del servidor |
+| 1.0.2     | 2026-10-05 | Se anade al README y a esta documentacion el reparto de trabajo entre Marco y Sebas |
