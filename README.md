@@ -11,7 +11,6 @@ Proyecto de la entrega "Entrega Proyecto Ficheros" de AirTortilla.
 | Marco | Catalogo de paises e IATA, entidad de reserva, identificador unico y localizador de coincidencias, interfaz web y documentacion |
 | Sebas | Lectura del CSV de entrada, agrupacion por pais de destino y generacion de los ficheros AirTortilla_XX_YYYY_MM_DD, CSV de ejemplo y pruebas automaticas |
 
-Repositorio: https://github.com/Sebas14xd/Entrega-Projecto-Ficheross rama Marco
 
 AirTortilla necesita repartir las reservas en ficheros independientes segun el
 pais de destino para poder gestionarlas y distribuirlas mejor segun la
