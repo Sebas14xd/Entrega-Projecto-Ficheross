@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AirTortilla - Entrega Proyecto Ficheros</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-size: 15px;
+}
+.envoltorio { max-width: 1220px; margin: 0 auto; padding: 24px 18px 60px; }
+.cabecera {
+  background: linear-gradient(120deg, #0ea5e9, #22c55e);
+  color: #05283d;
+  padding: 22px 26px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+}
+.cabecera h1 { margin: 0 0 6px 0; font-size: 26px; letter-spacing: 0.5px; }
+.cabecera p { margin: 0; font-size: 14px; }
+.panel {
+  background: #111c33;
+  border: 1px solid #24324f;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.panel h2 { margin: 0 0 14px 0; font-size: 18px; color: #7dd3fc; }
+.panel h3 { margin: 16px 0 8px 0; font-size: 15px; color: #a7f3d0; }
+label { display: block; margin: 10px 0 4px 0; font-size: 13px; color: #94a3b8; }
+input[type=file], input[type=number], textarea {
+  width: 100%;
+  padding: 9px 10px;
+  background: #0b1426;
+  border: 1px solid #2c3b5c;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-family: inherit;
+}
+textarea { font-family: Consolas, monospace; font-size: 12.5px; height: 130px; resize: vertical; }
+.zona {
+  border: 2px dashed #2c3b5c;
+  border-radius: 12px;
+  padding: 26px 18px;
+  text-align: center;
+  background: #0b1426;
+  cursor: pointer;
+}
+.zona.encima { border-color: #22c55e; background: #0f2a1c; }
+.zona strong { display: block; font-size: 16px; margin-bottom: 6px; }
+.zona span { font-size: 13px; color: #94a3b8; }
+.fila { display: flex; gap: 16px; flex-wrap: wrap; }
+.columna { flex: 1 1 240px; }
+.opciones { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+.opcion {
+  border: 2px solid #2c3b5c;
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: #0b1426;
+  min-width: 250px;
+}
+.opcion.seleccionada { border-color: #22c55e; background: #0f2a1c; }
+.opcion strong { display: block; color: #e2e8f0; font-size: 15px; }
+.opcion span { font-size: 12px; color: #94a3b8; }
+.boton {
+  background: #22c55e;
+  color: #04240f;
+  border: 0;
+  padding: 12px 22px;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  margin-right: 10px;
+  font-family: inherit;
+}
+.boton.secundario { background: #334155; color: #e2e8f0; }
+.boton.azul { background: #0ea5e9; color: #04283d; }
+.boton:disabled { opacity: 0.45; cursor: not-allowed; }
+table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+th, td { text-align: left; padding: 8px 9px; border-bottom: 1px solid #223049; vertical-align: top; }
+th { color: #7dd3fc; font-weight: 600; }
+.tarjetas { display: flex; gap: 12px; flex-wrap: wrap; }
+.tarjeta { background: #0b1426; border: 1px solid #24324f; border-radius: 10px; padding: 12px 16px; min-width: 132px; }
+.tarjeta .valor { font-size: 24px; font-weight: 700; color: #22c55e; }
+.tarjeta .etiqueta { font-size: 12px; color: #94a3b8; }
+.linea-log {
+  font-family: Consolas, monospace;
+  font-size: 12.5px;
+  padding: 6px 8px;
+  border-left: 3px solid #2c3b5c;
+  margin-bottom: 4px;
+  background: #0b1426;
+  border-radius: 0 6px 6px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.linea-log.OK { border-left-color: #22c55e; }
+.linea-log.COINCIDENCIA { border-left-color: #f59e0b; }
+.linea-log.ERROR { border-left-color: #ef4444; color: #fecaca; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.pill.OK { background: #14532d; color: #bbf7d0; }
+.pill.COINCIDENCIA { background: #7c2d12; color: #fed7aa; }
+.pill.ERROR { background: #7f1d1d; color: #fecaca; }
+a { color: #38bdf8; }
+a.enlace {
+  text-decoration: none;
+  display: inline-block;
+  padding: 5px 11px;
+  border-radius: 7px;
+  background: #1e293b;
+  font-size: 12.5px;
+  border: 1px solid #334155;
+  cursor: pointer;
+}
+a.enlace:hover { background: #334155; }
+.aviso { background: #422006; border: 1px solid #a16207; color: #fde68a; padding: 11px 14px; border-radius: 9px; margin-bottom: 14px; font-size: 13.5px; }
+.aviso.ok { background: #052e16; border-color: #16a34a; color: #bbf7d0; }
+.aviso.error { background: #4c0519; border-color: #be123c; color: #fecdd3; }
+.oculto { display: none; }
+pre.pre {
+  background: #020617;
+  border: 1px solid #24324f;
+  border-radius: 9px;
+  padding: 12px;
+  overflow: auto;
+  font-size: 12px;
+  max-height: 360px;
+  white-space: pre;
+  margin: 10px 0 0 0;
+}
+details summary { cursor: pointer; color: #7dd3fc; font-size: 14px; margin-bottom: 8px; }
+.modo-activo { color: #22c55e; font-weight: 700; }
+.fuentes { font-size: 12.5px; color: #64748b; }
+.fuentes code { color: #7dd3fc; }
+.pie { text-align: center; color: #64748b; font-size: 12.5px; margin-top: 26px; }
+</style>
+</head>
+<body>
+<div class="envoltorio">
+
+<div class="cabecera">
+<h1>AirTortilla</h1>
+<p>Division automatica de las reservas en ficheros independientes por pais de destino con el nombre AirTortilla_XX_YYYY_MM_DD</p>
+</div>
+
+<div class="panel">
+<h2>1 Carga el fichero de reservas</h2>
+<div class="zona" id="zona">
+<strong>Arrastra aqui tu fichero CSV</strong>
+<span>o pulsa para seleccionarlo desde el equipo</span>
+<input type="file" id="selector" accept=".csv,text/csv" class="oculto">
+</div>
+<div class="fila" style="margin-top:14px">
+<div class="columna">
+<label>Nombre del fichero cargado</label>
+<input type="text" id="nombreFichero" value="reservas_entrada.csv" readonly>
+</div>
+<div class="columna" style="align-self:flex-end">
+<button class="boton secundario" id="btnMuestra" type="button">Cargar el CSV de ejemplo</button>
+<button class="boton secundario" id="btnLimpiar" type="button">Empezar de cero</button>
+</div>
+</div>
+<label>Puedes pegar aqui el contenido del CSV si lo prefieres</label>
+<textarea id="pegador" placeholder="fecha_reserva;origen;destino;nombre_pasajero"></textarea>
+</div>
+
+<div class="panel">
+<h2>2 Elige la modalidad de ejecucion</h2>
+<div class="opciones">
+<div class="opcion seleccionada" id="opTotal" onclick="elegirModalidad(this)">
+<strong>Modalidad total</strong>
+<span>Procesa todas las lineas del CSV y genera un fichero por cada pais de destino y fecha</span>
+</div>
+<div class="opcion" id="opLinea" onclick="elegirModalidad(this)">
+<strong>Modalidad linea a linea</strong>
+<span>Procesa una sola linea del CSV y anade su reserva a su fichero de destino</span>
+</div>
+</div>
+<input type="hidden" id="modalidad" value="TOTAL">
+<div class="fila">
+<div class="columna" style="max-width:300px">
+<label>Numero de linea del CSV, la 2 es la primera reserva porque la 1 es la cabecera</label>
+<input type="number" id="linea" min="2" value="2" oninput="marcarLinea()">
+</div>
+<div class="columna" style="align-self:flex-end">
+<button class="boton" id="btnGenerar" type="button">Generar y consultar ficheros</button>
+</div>
+</div>
+</div>
+
+<div id="zonaAvisos"></div>
+
+<div class="panel oculto" id="panelResumen">
+<h2>Resumen del proceso</h2>
+<div class="tarjetas" id="tarjetas"></div>
+<p id="lineaModo" class="fuentes"></p>
+</div>
+
+<div class="panel oculto" id="panelPaises">
+<h2>Resumen por pais de destino</h2>
+<table>
+<thead><tr><th>Pais</th><th>Codigo IATA</th><th>Reservas</th><th>Ficheros generados</th></tr></thead>
+<tbody id="tablaPaises"></tbody>
+</table>
+</div>
+
+<div class="panel oculto" id="panelFicheros">
+<h2>Ficheros generados, uno por pais de destino</h2>
+<table>
+<thead><tr><th>Fichero</th><th>Pais</th><th>Fecha reserva</th><th>Reservas</th><th>Acciones</th></tr></thead>
+<tbody id="tablaFicheros"></tbody>
+</table>
+<div style="margin-top:16px">
+<button class="boton azul" id="btnZip" type="button">Descargar todos en un ZIP</button>
+<button class="boton secundario" id="btnTodos" type="button">Descargar fichero por fichero</button>
+</div>
+<p class="fuentes">El navegador no puede escribir dentro de una carpeta del disco por seguridad, por eso los ficheros se descargan desde el navegador. El ZIP contiene todos los CSV con el nombre AirTortilla_XX_YYYY_MM_DD dentro de la carpeta salida.</p>
+</div>
+
+<div class="panel oculto" id="panelLog">
+<h2>Proceso de golpe</h2>
+<details open>
+<summary>Agrupacion por pais de destino</summary>
+<div id="logGrupos"></div>
+</details>
+<details open>
+<summary>Detalle linea a linea del fichero de entrada</summary>
+<div id="logDetalle"></div>
+</details>
+</div>
+
+<div class="panel oculto" id="panelVista">
+<h2>Vista previa del contenido de los ficheros</h2>
+<div id="vistaPrevia"></div>
+</div>
+
+<div class="pie">AirTortilla - Proyecto Ficheros - HTML y JavaScript sin dependencias externas</div>
+</div>
+
+<script>
+var CATALOGO = "AFGANISTAN AF|ALEMANIA DE|ALBANIA AL|ALGERIA DZ|ANGOLA AO|ANTIGUA Y BARBUDA AG|ARABIA SAUDITA SA|ARGENTINA AR|ARMENIA AM|ARUBA AW|AUSTRALIA AU|AUSTRIA AT|AZERBAIYAN AZ|BAHAMAS BS|BAHREIN BH|BANGLADESH BD|BARBADOS BB|BELARUS BY|BELGICA BE|BELICE BZ|BENIN BJ|BOLIVIA BO|BOSNIA Y HERZEGOVINA BA|BOTSWANA BW|BRASIL BR|BRUNEI BN|BULGARIA BG|BURKINA FASO BF|BURUNDI BI|CABO VERDE CV|CAMBOYA KH|CAMERUN CM|CANADA CA|CATAR QA|CHAD TD|CHILE CL|CHINA CN|CHIPRE CY|COLOMBIA CO|COMORAS KM|CONGO CG|CONGO REPUBLICA DEMOCRATICA CD|COREA DEL NORTE KP|COREA DEL SUR KR|COSTA DE MARFIL CI|COSTA RICA CR|CROACIA HR|CUBA CU|DINAMARCA DK|DJIBOUTI DJ|DOMINICA DM|ECUADOR EC|EGIPTO EG|EL SALVADOR SV|EMIRATOS ARABES UNIDOS AE|ESLOVENIA SI|ESPANA ES|ESTADOS UNIDOS US|ESTONIA EE|ETIOPIA ET|FILIPINAS PH|FINLANDIA FI|FRANCIA FR|GABON GA|GAMBIA GM|GEORGIA GE|GHANA GH|GRECIA GR|GUATEMALA GT|GUINEA GN|GUINEA ECUATORIAL GQ|GUYANA GY|HAITI HT|HONDURAS HN|HONG KONG HK|HUNGRIA HU|INDIA IN|INDONESIA ID|IRAK IQ|IRAN IR|IRLANDA IE|ISLANDIA IS|ISLAS BAHAMAS BH|ISRAEL IL|ITALIA IT|JAMAICA JM|JAPON JP|JORDANIA JO|KAZAJSTAN KZ|KENIA KE|KIRGUISTAN KG|KOSOVO XK|KUBAIT KW|LAOS LA|LESOTO LS|LETONIA LV|LIBANO LB|LIBERIA LR|LIBIA LY|LITUANIA LT|LUXEMBURGO LU|MACAO MO|MACEDONIA DEL NORTE MK|MADAGASCAR MG|MALASIA MY|MALAWI MW|MALDIVAS MV|MALI ML|MALTA MT|MARRUECOS MA|MAURICIO MU|MAURITANIA MR|MEXICO MX|MICRONESIA FM|MOLDAVIA MD|MONGOLIA MN|MONTENEGRO ME|MOZAMBIQUE MZ|NAMIBIA NA|NEPAL NP|NICARAGUA NI|NIGER NE|NIGERIA NG|NORUEGA NO|NUEVA ZELANDA NZ|PAISES BAJOS NL|PAKISTAN PK|PALAU PW|PANAMA PA|PAPUA NUEVA GUINEA PG|PARAGUAY PY|PERU PE|POLONIA PL|PORTUGAL PT|REINO UNIDO GB|REPUBLICA CENTROAFRICANA CF|REPUBLICA CHECA CZ|REPUBLICA DEMOCRATICA DEL CONGO CD|REPUBLICA DOMINICANA DO|REPUBLICA ESLOVACA SK|RUSIA RU|SALOMON SB|SAN MARINO SM|SAN VICENTE Y LAS GRANADINAS VC|SANTO TOME Y PRINCIPE ST|SENEGAL SN|SERBIA RS|SEYCHELLES SC|SIERRA LEONA SL|SINGAPUR SG|SIRIA SY|SOMALIA SO|SUDAN SD|SUECIA SE|SUIZA CH|TAILANDIA TH|TANZANIA TZ|TOGO TG|TONGA TO|TRINIDAD Y TOBAGO TT|TUNEZ TN|TURQUIA TR|UCRANIA UA|UGANDA UG|URUGUAY UY|UZBEKISTAN UZ|VENEZUELA VE|VIETNAM VN|YEMEN YE|ZAMBIA ZM|ZIMBABUE ZW";
+
+var SINONIMOS = "US ESTADOS UNIDOS|USA ESTADOS UNIDOS|EEUU ESTADOS UNIDOS|UK REINO UNIDO|GB REINO UNIDO|INGLATERRA REINO UNIDO|HOLANDA PAISES BAJOS|CATALUNA ESPANA|ANDORRA ESPANA|REP DOMINICANA REPUBLICA DOMINICANA|DOMINICANA REPUBLICA DOMINICANA";
+
+var ALIAS = {
+  "FECHA": "fecha_reserva", "FECHA RESERVA": "fecha_reserva",
+  "FECHA DE LA RESERVA": "fecha_reserva", "FECHA DE RESERVA": "fecha_reserva",
+  "FECHA RESERVACION": "fecha_reserva",
+  "ORIGEN": "origen", "CIUDAD ORIGEN": "origen", "PAIS ORIGEN": "origen",
+  "DESTINO": "destino", "CIUDAD DESTINO": "destino", "PAIS DESTINO": "destino",
+  "NOMBRE": "nombre_pasajero", "NOMBRE DEL PASAJERO": "nombre_pasajero",
+  "NOMBRE PASAJERO": "nombre_pasajero", "PASAJERO": "nombre_pasajero",
+  "LOCALIZADOR": "localizador", "REFERENCIA": "localizador"
+};
+
+var CAMPOS_SALIDA = ["id_reserva", "fecha_reserva", "destino", "destino_iata", "origen", "nombre_pasajero", "localizador", "coincidencia", "viajero_en_grupo"];
+
+var ALFABETO = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+var MUESTRA = [
+"fecha_reserva;origen;destino;nombre_pasajero;localizador",
+"2026-10-02;ESPANA;FRANCIA;LUCIA MORENO;",
+"2026-10-02;ESPANA;FRANCIA;MARCOS RUIZ;",
+"2026-10-02;ITALIA;FRANCIA;MARCOS RUIZ;",
+"2026-10-02;ALEMANIA;JAPON;ANNA SCHMIDT;",
+"2026-10-02;ALEMANIA;JAPON;ANNA SCHMIDT;",
+"2026-10-02;ALEMANIA;JAPON;ANNA SCHMIDT;",
+"2026-10-02;ALEMANIA;JAPON;ANNA SCHMIDT;",
+"2026-10-02;FRANCIA;JAPON;ANNA SCHMIDT;",
+"2026-10-02;ALEMANIA;JAPON;ANNA SCHMIDT;",
+"2026-10-02;PORTUGAL;BRASIL;JOAO SILVA;",
+"2026-10-02;PORTUGAL;BRASIL;JOAO SILVA;",
+"2026-10-03;ESPANA;ESTADOS UNIDOS;MARIA LOPEZ;",
+"2026-10-03;ESPANA;ESTADOS UNIDOS;CARLOS GOMEZ;",
+"2026-10-03;REINO UNIDO;ESTADOS UNIDOS;PETER BROWN;",
+"2026-10-03;ESPANA;JAPON;MARTA GARCIA;",
+"2026-10-03;MEXICO;ESPANA;DIEGO FERNANDEZ;",
+"2026-10-03;MEXICO;ESPANA;DIEGO FERNANDEZ;",
+"2026-10-04;ALEMANIA;ITALIA;HANNA WEBER;",
+"2026-10-04;FRANCIA;ESPANA;JULIE MARTIN;",
+"2026-10-04;FRANCIA;ESPANA;PIERRE DUPONT;",
+"2026-10-04;CHINA;ESPANA;LI WEI;",
+"2026-10-05;NORUEGA;ISLANDIA;OLAV NILSEN;",
+"2026-10-05;NORUEGA;ISLANDIA;OLAV NILSEN;",
+"2026-10-05;SUECIA;ISLANDIA;EVA LIND;",
+"2026-10-05;ARGENTINA;URUGUAY;LUCIA PAZ;",
+"2026-10-06;INDIA;EMIRATOS ARABES UNIDOS;RAJ PATEL;",
+"2026-10-06;INDIA;EMIRATOS ARABES UNIDOS;RAJ PATEL;",
+"2026-10-06;AUSTRALIA;NUEVA ZELANDA;JACK MURPHY;",
+"2026-10-07;BELGICA;PAISES BAJOS;JAN PEETERS;",
+"2026-10-07;SUIZA;PAISES BAJOS;CLAUDE WEBER;",
+"2026-10-07;PERU;CHILE;ANA TORRES;",
+"2026-10-07;PERU;CHILE;ANA TORRES;",
+"2026-10-08;TURQUIA;GRECIA;MEHMET YILMAZ;",
+"2026-10-08;CANADA;MARRUECOS;SARAH TREMBLAY;",
+"2026-10-08;RUSIA;FINLANDIA;IVAN VOLKOV;",
+"2026-10-09;ESPANA;CUBA;ANA MORALES;",
+"2026-10-09;REP DOMINICANA;CUBA;PEDRO RAMIREZ;",
+"2026-10-09;VENEZUELA;COLOMBIA;ANA MORALES;",
+"2026-10-09;ECUADOR;COLOMBIA;DIEGO PAZ;",
+"2026-10-10;IRLANDA;REINO UNIDO;SEAN KELLY;",
+"2026-10-10;IRLANDA;REINO UNIDO;SEAN KELLY;",
+"2026-10-10;ISLAS BAHAMAS;PANAMA;JOHN SMITH;",
+"2026-10-10;SENEGAL;MARRUECOS;AMADOU DIALLO;",
+"2026-10-11;UCRANIA;POLONIA;OLEKSANDR PETRENKO;",
+"2026-10-11;RUMANIA;HUNGRIA;ION POPESCU;",
+"2026-10-11;GRECIA;CHIPRE;YANNIS NIKOLOU;",
+"2026-10-11;KAZAJSTAN;UZBEKISTAN;ALEXEY VOLKOV;",
+"2026-10-12;THAILANDIA;JAPON;SOMCHAI PONG;",
+"2026-10-12;AUSTRALIA;JAPON;EMILY CLARKE;",
+"2026-10-12;COLOMBIA;PERU;CARLOS RAMOS;",
+"2026-10-13;ESPANA;NARNIA;PABLO GARRIDO;",
+"2026-10-13;ESPANA;ESPANA;;"
+].join("\n");
+
+var PAISES = {};
+var CODIGOS = {};
+var ALIAS_PAIS = {};
+(function(){
+  CATALOGO.split("|").forEach(function(trozo){
+    var corte = trozo.lastIndexOf(" ");
+    var pais = trozo.slice(0, corte);
+    var iata = trozo.slice(corte + 1);
+    PAISES[pais] = iata;
+    CODIGOS[iata] = pais;
+  });
+  SINONIMOS.split("|").forEach(function(trozo){
+    var corte = trozo.lastIndexOf(" ");
+    ALIAS_PAIS[trozo.slice(0, corte)] = trozo.slice(corte + 1);
+  });
+})();
+
+var ESTADO = { csv: "", nombre: "", ejecucion: null };
+
+function normalizar(valor){
+  if (valor === null || valor === undefined) return "";
+  var texto = String(valor).trim();
+  if (!texto) return "";
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/\s+/g, " ");
+}
+
+function sha1(mensaje){
+  var bytes = [];
+  var utf8 = unescape(encodeURIComponent(mensaje));
+  for (var i = 0; i < utf8.length; i++) bytes.push(utf8.charCodeAt(i) & 255);
+  var bits = bytes.length * 8;
+  bytes.push(128);
+  while (bytes.length % 64 !== 56) bytes.push(0);
+  var alto = Math.floor(bits / 4294967296);
+  var bajo = bits >>> 0;
+  for (var p1 = 3; p1 >= 0; p1--) bytes.push((alto >>> (p1 * 8)) & 255);
+  for (var p2 = 3; p2 >= 0; p2--) bytes.push((bajo >>> (p2 * 8)) & 255);
+  var h0 = 0x67452301, h1 = 0xEFCDAB89, h2 = 0x98BADCFE, h3 = 0x10325476, h4 = 0xC3D2E1F0;
+  var w = new Array(80);
+  for (var base = 0; base < bytes.length; base += 64) {
+    for (var t = 0; t < 16; t++) {
+      w[t] = (bytes[base + t * 4] << 24) | (bytes[base + t * 4 + 1] << 16) |
+             (bytes[base + t * 4 + 2] << 8) | bytes[base + t * 4 + 3];
+    }
+    for (var u = 16; u < 80; u++) {
+      var mezcla = w[u - 3] ^ w[u - 8] ^ w[u - 14] ^ w[u - 16];
+      w[u] = (mezcla << 1) | (mezcla >>> 31);
+    }
+    var a0 = h0, b0 = h1, c0 = h2, d0 = h3, e0 = h4;
+    for (var j = 0; j < 80; j++) {
+      var f, kc;
+      if (j < 20) { f = (b0 & c0) | ((~b0) & d0); kc = 0x5A827999; }
+      else if (j < 40) { f = b0 ^ c0 ^ d0; kc = 0x6ED9EBA1; }
+      else if (j < 60) { f = (b0 & c0) | (b0 & d0) | (c0 & d0); kc = 0x8F1BBCDC; }
+      else { f = b0 ^ c0 ^ d0; kc = 0xCA62C1D6; }
+      var suma = (((a0 << 5) | (a0 >>> 27)) + f + e0 + kc + w[j]) | 0;
+      e0 = d0;
+      d0 = c0;
+      c0 = (b0 << 30) | (b0 >>> 2);
+      b0 = a0;
+      a0 = suma;
+    }
+    h0 = (h0 + a0) | 0;
+    h1 = (h1 + b0) | 0;
+    h2 = (h2 + c0) | 0;
+    h3 = (h3 + d0) | 0;
+    h4 = (h4 + e0) | 0;
+  }
+  return [h0, h1, h2, h3, h4].map(function(x){
+    return (x >>> 0).toString(16).padStart(8, "0");
+  }).join("");
+}
+
+function hashCorto(texto, largo){
+  var numero = BigInt("0x" + sha1(texto).slice(0, 24));
+  var base = BigInt(ALFABETO.length);
+  var salida = "";
+  for (var i = 0; i < largo; i++) {
+    salida += ALFABETO[Number(numero % base)];
+    numero = numero / base;
+  }
+  return salida;
+}
+
+function abreviatura(texto, maximo){
+  var limpio = normalizar(texto).replace(/[^A-Z0-9]+/g, "");
+  return limpio.slice(0, maximo) || "X";
+}
+
+function codigoIata(destino){
+  var clave = normalizar(destino);
+  if (!clave) return "";
+  if (ALIAS_PAIS[clave]) clave = ALIAS_PAIS[clave];
+  if (clave.length === 2 && CODIGOS[clave]) return clave;
+  return PAISES[clave] || "";
+}
+
+function nombrePais(iata){
+  return CODIGOS[iata] || iata;
+}
+
+function parsearFecha(valor){
+  var texto = String(valor || "").trim();
+  if (!texto) return "";
+  var partes = texto.split(/[-/.\s]/);
+  var ano, mes, dia;
+  if (partes.length === 3) {
+    if (partes[0].length === 4) { ano = +partes[0]; mes = +partes[1]; dia = +partes[2]; }
+    else { dia = +partes[0]; mes = +partes[1]; ano = +partes[2]; }
+  } else return "";
+  if (!ano || !mes || !dia) return "";
+  if (mes < 1 || mes > 12 || dia < 1 || dia > 31 || ano < 1900 || ano > 2200) return "";
+  var fecha = new Date(Date.UTC(ano, mes - 1, dia));
+  if (fecha.getUTCMonth() !== mes - 1 || fecha.getUTCDate() !== dia) return "";
+  return ano + "-" + ("0" + mes).slice(-2) + "-" + ("0" + dia).slice(-2);
+}
+
+function detectarDelimitador(texto){
+  var lineas = texto.split(/\r?\n/).filter(function(l){ return l.trim(); }).slice(0, 25);
+  var candidatos = [";", ",", "\t", "|"];
+  var mejor = ";", maximo = -1;
+  candidatos.forEach(function(c){
+    var total = 0;
+    lineas.forEach(function(l){ total += l.split(c).length - 1; });
+    if (total > maximo) { maximo = total; mejor = c; }
+  });
+  return mejor;
+}
+
+function separarLinea(linea, delimitador){
+  var celdas = [], actual = "", entrecomillado = false;
+  for (var i = 0; i < linea.length; i++) {
+    var c = linea[i];
+    if (entrecomillado) {
+      if (c === '"') {
+        if (linea[i + 1] === '"') { actual += '"'; i++; }
+        else entrecomillado = false;
+      } else actual += c;
+    } else if (c === '"') {
+      entrecomillado = true;
+    } else if (c === delimitador) {
+      celdas.push(actual); actual = "";
+    } else actual += c;
+  }
+  celdas.push(actual);
+  return celdas;
+}
+
+function mapearCabeceras(cabeceras){
+  var mapa = {};
+  cabeceras.forEach(function(bruto, indice){
+    var clave = normalizar(String(bruto).replace(/_/g, " "));
+    if (ALIAS[clave] && mapa[ALIAS[clave]] === undefined) mapa[ALIAS[clave]] = indice;
+  });
+  if (mapa.fecha_reserva === undefined) {
+    cabeceras.forEach(function(bruto, indice){
+      var clave = normalizar(String(bruto).replace(/_/g, " "));
+      if (clave.indexOf("FECHA") >= 0 && mapa.fecha_reserva === undefined) mapa.fecha_reserva = indice;
+    });
+  }
+  return mapa;
+}
+
+function construirReservas(texto){
+  var reservas = [];
+  if (!texto.trim()) return reservas;
+  var delimitador = detectarDelimitador(texto);
+  var filas = texto.split(/\r?\n/).filter(function(l){ return l.trim(); }).map(function(l){
+    return separarLinea(l, delimitador);
+  });
+  if (!filas.length) return reservas;
+  var mapa = mapearCabeceras(filas[0]);
+  var cuerpo = Object.keys(mapa).length ? filas.slice(1) : filas;
+  var repeticiones = {};
+  cuerpo.forEach(function(fila, indice){
+    function valor(campo){
+      var pos = mapa[campo];
+      if (pos === undefined || pos >= fila.length) return "";
+      return fila[pos];
+    }
+    var fecha = parsearFecha(valor("fecha_reserva"));
+    var base = [fecha || "sin-fecha", normalizar(valor("origen")), normalizar(valor("destino")), normalizar(valor("nombre_pasajero"))].join("|");
+    var repeticion = repeticiones[base] || 0;
+    repeticiones[base] = repeticion + 1;
+    var destino = String(valor("destino") || "").trim();
+    var reserva = {
+      fila: indice + (Object.keys(mapa).length ? 2 : 1),
+      fecha: fecha,
+      origen: String(valor("origen") || "").trim(),
+      destino: destino,
+      iata: codigoIata(destino),
+      nombre: String(valor("nombre_pasajero") || "").trim(),
+      localizadorEntrada: String(valor("localizador") || "").trim(),
+      id_reserva: "RES-" + hashCorto(base + "|" + repeticion, 10),
+      localizador: "",
+      coincidencia: false,
+      viajeros: 1,
+      fichero: "",
+      errores: []
+    };
+    if (!fecha) reserva.errores.push("fecha de reserva vacia o con formato no reconocido");
+    if (!reserva.origen) reserva.errores.push("origen vacio");
+    if (!reserva.destino) reserva.errores.push("destino vacio");
+    if (!reserva.nombre) reserva.errores.push("nombre del pasajero vacio");
+    if (destino && !reserva.iata) reserva.errores.push("destino fuera del catalogo: " + destino);
+    if (reserva.localizadorEntrada) reserva.localizador = reserva.localizadorEntrada.toUpperCase();
+    reservas.push(reserva);
+  });
+  return reservas;
+}
+
+function claveCoincidencia(r){
+  return [normalizar(r.nombre), normalizar(r.origen), normalizar(r.destino)].join("|");
+}
+
+function resolverLocalizadores(reservas){
+  var grupos = {};
+  reservas.forEach(function(r){
+    if (r.errores.length) return;
+    var clave = claveCoincidencia(r);
+    if (!grupos[clave]) grupos[clave] = [];
+    grupos[clave].push(r);
+  });
+  Object.keys(grupos).forEach(function(clave){
+    var miembros = grupos[clave];
+    if (miembros.length < 2) return;
+    var localizador = "LOC-" + abreviatura(miembros[0].nombre, 6) + "-" + hashCorto(clave, 4);
+    miembros.forEach(function(r){
+      r.coincidencia = true;
+      r.localizador = localizador;
+      r.viajeros = miembros.length;
+    });
+  });
+}
+
+function nombreFichero(iata, fecha){
+  var p = fecha.split("-");
+  return "AirTortilla_" + iata + "_" + p[0] + "_" + p[1] + "_" + p[2];
+}
+
+function nombreFicheroDe(r){
+  return r.iata && r.fecha ? nombreFichero(r.iata, r.fecha) : "";
+}
+
+function aCsv(registros){
+  var salida = CAMPOS_SALIDA.join(";") + "\n";
+  registros.forEach(function(r){
+    salida += CAMPOS_SALIDA.map(function(c){
+      var v = r[c] === undefined || r[c] === null ? "" : String(r[c]);
+      if (v.indexOf(";") >= 0 || v.indexOf('"') >= 0) return '"' + v.replace(/"/g, '""') + '"';
+      return v;
+    }).join(";") + "\n";
+  });
+  return salida;
+}
+
+function comoDiccionario(r){
+  return {
+    id_reserva: r.id_reserva,
+    fecha_reserva: r.fecha,
+    destino: r.destino,
+    destino_iata: r.iata,
+    origen: r.origen,
+    nombre_pasajero: r.nombre,
+    localizador: r.localizador,
+    coincidencia: r.coincidencia ? "SI" : "NO",
+    viajero_en_grupo: r.viajeros
+  };
+}
+
+function procesar(todo){
+  var reservas = construirReservas(todo);
+  var modo = document.getElementById("modalidad").value;
+  var lineaPedida = parseInt(document.getElementById("linea").value, 10) || 2;
+  var seleccionadas, acumuladas = [];
+  if (modo === "TOTAL") {
+    seleccionadas = reservas;
+  } else {
+    seleccionadas = reservas.filter(function(r){ return r.fila === lineaPedida; });
+    acumuladas = reservas.filter(function(r){ return r.fila < lineaPedida && !r.errores.length; });
+  }
+  resolverLocalizadores(acumuladas.concat(seleccionadas.filter(function(r){ return !r.errores.length; })));
+  var grupos = {}, descartadas = [];
+  seleccionadas.forEach(function(r){
+    if (r.errores.length) { descartadas.push(r); return; }
+    var clave = r.iata + "|" + r.fecha;
+    if (!grupos[clave]) grupos[clave] = [];
+    grupos[clave].push(r);
+  });
+  var ficheros = [], resumenPaises = {}, log = [];
+  Object.keys(grupos).sort().forEach(function(clave){
+    var miembros = grupos[clave];
+    var cabeza = miembros[0];
+    var nombre = nombreFichero(cabeza.iata, cabeza.fecha);
+    miembros.forEach(function(r){ r.fichero = nombre; });
+    var registros = miembros.map(comoDiccionario);
+    if (modo === "LINEA") {
+      var previos = acumuladas.filter(function(r){ return r.fichero === nombre; }).map(comoDiccionario);
+      registros = previos.concat(registros);
+    }
+    var texto = aCsv(registros);
+    ficheros.push({
+      nombre: nombre + ".csv",
+      iata: cabeza.iata,
+      pais: nombrePais(cabeza.iata),
+      fecha: cabeza.fecha,
+      lineas: registros.length,
+      texto: texto
+    });
+    if (!resumenPaises[cabeza.iata]) {
+      resumenPaises[cabeza.iata] = { pais: nombrePais(cabeza.iata), iata: cabeza.iata, reservas: 0, ficheros: [] };
+    }
+    resumenPaises[cabeza.iata].reservas += miembros.length;
+    resumenPaises[cabeza.iata].ficheros.push(nombre + ".csv");
+    log.push("Grupo " + cabeza.iata + " (" + nombrePais(cabeza.iata) + ") -> " + nombre + ".csv con " + registros.length + " reserva(s)");
+  });
+  descartadas.forEach(function(r){
+    log.push("Linea " + r.fila + " descartada, no genera fichero: " + r.errores.join("; "));
+  });
+  var detalle = seleccionadas.map(function(r){
+    if (r.errores.length) {
+      return { tipo: "ERROR", fila: r.fila, texto: "Linea " + r.fila + " descartada: " + r.errores.join("; ") };
+    }
+    var texto = "Linea " + r.fila + " | " + r.nombre + " | " + r.origen + " -> " + r.destino +
+      " | destino " + r.iata + " (" + r.id_reserva + ") | fichero " + r.fichero + ".csv";
+    if (r.coincidencia) texto += " | LOCALIZADOR " + r.localizador + " (" + r.viajeros + " viajeros)";
+    return { tipo: r.coincidencia ? "COINCIDENCIA" : "OK", fila: r.fila, texto: texto };
+  });
+  return {
+    modo: modo,
+    linea: modo === "LINEA" ? lineaPedida : null,
+    origen: ESTADO.nombre,
+    generado: new Date().toLocaleString("es-ES"),
+    ficheros: ficheros,
+    paises: Object.keys(resumenPaises).sort().map(function(k){ return resumenPaises[k]; }),
+    log: log,
+    detalle: detalle,
+    totales: {
+      leidas: reservas.length,
+      validas: reservas.filter(function(r){ return !r.errores.length; }).length,
+      coincidencias: reservas.filter(function(r){ return r.coincidencia; }).length,
+      descartadas: reservas.filter(function(r){ return r.errores.length; }).length
+    }
+  };
+}
+
+function esc(valor){
+  return String(valor === undefined || valor === null ? "" : valor)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function avisos(texto, clase){
+  document.getElementById("zonaAvisos").innerHTML = '<div class="aviso ' + clase + '">' + esc(texto) + "</div>";
+}
+
+function limpiarAvisos(){ document.getElementById("zonaAvisos").innerHTML = ""; }
+
+function render(){
+  var e = ESTADO.ejecucion;
+  if (!e) return;
+  document.getElementById("panelResumen").classList.remove("oculto");
+  document.getElementById("panelPaises").classList.remove("oculto");
+  document.getElementById("panelFicheros").classList.remove("oculto");
+  document.getElementById("panelLog").classList.remove("oculto");
+  document.getElementById("panelVista").classList.remove("oculto");
+  document.getElementById("tarjetas").innerHTML = [
+    ["Lineas leidas", e.totales.leidas],
+    ["Reservas validas", e.totales.validas],
+    ["Con localizador", e.totales.coincidencias],
+    ["Ficheros generados", e.ficheros.length],
+    ["Paises destino", e.paises.length],
+    ["Descartadas", e.totales.descartadas]
+  ].map(function(t){
+    return '<div class="tarjeta"><div class="valor">' + t[1] + '</div><div class="etiqueta">' + t[0] + "</div></div>";
+  }).join("");
+  document.getElementById("lineaModo").innerHTML = "Modo <span class='modo-activo'>" + esc(e.modo) +
+    (e.linea ? " (linea " + e.linea + ")" : "") + " - fichero de entrada <code>" + esc(e.origen) +
+    "</code> - " + e.ficheros.length + " fichero(s) en " + e.paises.length + " pais(es) - " + esc(e.generado);
+  document.getElementById("tablaPaises").innerHTML = e.paises.map(function(p){
+    return "<tr><td>" + esc(p.pais) + "</td><td><strong>" + esc(p.iata) + "</strong></td><td>" + p.reservas +
+      "</td><td>" + p.ficheros.map(function(f){
+        return '<a class="enlace" data-fichero="' + esc(f) + '">' + esc(f) + "</a>";
+      }).join(" ") + "</td></tr>";
+  }).join("");
+  document.getElementById("tablaFicheros").innerHTML = e.ficheros.map(function(f){
+    return "<tr><td><code>" + esc(f.nombre) + "</code></td><td>" + esc(f.pais) + "</td><td>" + esc(f.fecha) +
+      "</td><td>" + f.lineas + '</td><td><a class="enlace" data-fichero="' + esc(f.nombre) + '">Ver</a> ' +
+      '<a class="enlace" data-descargar="' + esc(f.nombre) + '">Descargar</a></td></tr>';
+  }).join("");
+  document.getElementById("logGrupos").innerHTML = e.log.length
+    ? e.log.map(function(l){ return '<div class="linea-log">' + esc(l) + "</div>"; }).join("")
+    : '<div class="linea-log">No hay nada que agrupar</div>';
+  document.getElementById("logDetalle").innerHTML = e.detalle.length
+    ? e.detalle.map(function(d){
+        return '<div class="linea-log ' + d.tipo + '"><span class="pill ' + d.tipo + '">' + d.tipo +
+          '</span> ' + esc(d.texto) + "</div>";
+      }).join("")
+    : '<div class="linea-log">No hay ninguna linea con ese numero</div>';
+  document.getElementById("vistaPrevia").innerHTML = e.ficheros.length
+    ? e.ficheros.map(function(f){
+        return "<details><summary>" + esc(f.nombre) + " (" + f.lineas + " reservas)</summary><pre class='pre'>" +
+          esc(f.texto) + "</pre></details>";
+      }).join("")
+    : "<p class='fuentes'>No se ha generado ningun fichero</p>";
+}
+
+function csvEscapar(texto){
+  var campos = texto.split(";");
+  for (var i = 0; i < campos.length; i++) {
+    if (campos[i].indexOf('"') >= 0) campos[i] = '"' + campos[i].replace(/"/g, '""') + '"';
+  }
+  return campos.join(";");
+}
+
+function descargar(texto, nombre){
+  var blob = new Blob(["\ufeff" + texto], { type: "text/csv;charset=utf-8" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+}
+
+var TABLA_CRC = null;
+function crc32(datos){
+  if (!TABLA_CRC) {
+    TABLA_CRC = [];
+    for (var n = 0; n < 256; n++) {
+      var c = n;
+      for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      TABLA_CRC[n] = c >>> 0;
+    }
+  }
+  var crc = 0xFFFFFFFF;
+  for (var i = 0; i < datos.length; i++) crc = TABLA_CRC[(crc ^ datos[i]) & 0xFF] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function crearZip(archivos){
+  var ahora = new Date();
+  var hora = (ahora.getHours() << 11) | (ahora.getMinutes() << 5) | Math.floor(ahora.getSeconds() / 2);
+  var dia = ((ahora.getFullYear() - 1980) << 9) | ((ahora.getMonth() + 1) << 5) | ahora.getDate();
+  var cod = new TextEncoder();
+  var trozos = [], central = [], tamano = 0;
+  archivos.forEach(function(a){
+    var nombre = cod.encode(csvEscapar(a.nombre));
+    var datos = cod.encode("\ufeff" + a.texto);
+    var crc = crc32(datos);
+    var cab = new Uint8Array(30 + nombre.length);
+    var v = new DataView(cab.buffer);
+    v.setUint32(0, 0x04034b50, true);
+    v.setUint16(4, 20, true);
+    v.setUint16(6, 0x0800, true);
+    v.setUint16(10, hora, true);
+    v.setUint16(12, dia, true);
+    v.setUint32(14, crc, true);
+    v.setUint32(18, datos.length, true);
+    v.setUint32(22, datos.length, true);
+    v.setUint16(26, nombre.length, true);
+    cab.set(nombre, 30);
+    var cen = new Uint8Array(46 + nombre.length);
+    var c = new DataView(cen.buffer);
+    c.setUint32(0, 0x02014b50, true);
+    c.setUint16(4, 20, true);
+    c.setUint16(6, 20, true);
+    c.setUint16(8, 0x0800, true);
+    c.setUint16(12, hora, true);
+    c.setUint16(14, dia, true);
+    c.setUint32(16, crc, true);
+    c.setUint32(20, datos.length, true);
+    c.setUint32(24, datos.length, true);
+    c.setUint16(28, nombre.length, true);
+    c.setUint32(42, tamano, true);
+    cen.set(nombre, 46);
+    trozos.push(cab, datos);
+    central.push(cen);
+    tamano += cab.length + datos.length;
+  });
+  var tamCentral = central.reduce(function(s, x){ return s + x.length; }, 0);
+  var fin = new Uint8Array(22);
+  var e = new DataView(fin.buffer);
+  e.setUint32(0, 0x06054b50, true);
+  e.setUint16(8, archivos.length, true);
+  e.setUint16(10, archivos.length, true);
+  e.setUint32(12, tamCentral, true);
+  e.setUint32(16, tamano, true);
+  return new Blob(trozos.concat(central, [fin]), { type: "application/zip" });
+}
+
+function descargarZip(){
+  var e = ESTADO.ejecucion;
+  if (!e || !e.ficheros.length) return;
+  var archivos = e.ficheros.map(function(f){ return { nombre: f.nombre, texto: f.texto }; });
+  var blob = crearZip(archivos);
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "AirTortilla_reservas_por_destino.zip";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+
+function leerFichero(archivo){
+  var lector = new FileReader();
+  lector.onload = function(){
+    ESTADO.csv = String(lector.result);
+    ESTADO.nombre = archivo.name;
+    document.getElementById("nombreFichero").value = archivo.name;
+    document.getElementById("pegador").value = "";
+    avisos("Cargado " + archivo.name + ". Pulsa Generar y consultar ficheros", "ok");
+    ejecutar();
+  };
+  lector.readAsText(archivo, "utf-8");
+}
+
+function ejecutar(){
+  var pegado = document.getElementById("pegador").value.trim();
+  var texto = pegado || ESTADO.csv;
+  if (!texto) { avisos("Carga un fichero CSV o pega su contenido antes de generar", "error"); return; }
+  limpiarAvisos();
+  ESTADO.ejecucion = procesar(texto);
+  render();
+  var e = ESTADO.ejecucion;
+  avisos("OK Proceso finalizado en modalidad " + e.modo + ": " + e.ficheros.length +
+    " fichero(s) generado(s), " + e.totales.coincidencias + " reserva(s) con localizador, " +
+    e.totales.descartadas + " descartada(s)", "ok");
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+}
+
+function elegirModalidad(elegida){
+  document.getElementById("opTotal").classList.remove("seleccionada");
+  document.getElementById("opLinea").classList.remove("seleccionada");
+  elegida.classList.add("seleccionada");
+  document.getElementById("modalidad").value = elegida.id === "opTotal" ? "TOTAL" : "LINEA";
+}
+
+function marcarLinea(){
+  if (parseInt(document.getElementById("linea").value, 10) > 1) elegirModalidad(document.getElementById("opLinea"));
+}
+
+function buscarFichero(nombre){
+  var e = ESTADO.ejecucion;
+  if (!e) return null;
+  for (var i = 0; i < e.ficheros.length; i++) if (e.ficheros[i].nombre === nombre) return e.ficheros[i];
+  return null;
+}
+
+document.getElementById("zona").addEventListener("click", function(){ document.getElementById("selector").click(); });
+document.getElementById("selector").addEventListener("change", function(ev){
+  if (ev.target.files && ev.target.files[0]) leerFichero(ev.target.files[0]);
+});
+var zona = document.getElementById("zona");
+["dragenter", "dragover"].forEach(function(ev){
+  zona.addEventListener(ev, function(e){ e.preventDefault(); zona.classList.add("encima"); });
+});
+["dragleave", "drop"].forEach(function(ev){
+  zona.addEventListener(ev, function(e){ e.preventDefault(); zona.classList.remove("encima"); });
+});
+zona.addEventListener("drop", function(e){
+  var archivo = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (archivo) leerFichero(archivo);
+});
+document.getElementById("btnMuestra").addEventListener("click", function(){
+  ESTADO.csv = MUESTRA;
+  ESTADO.nombre = "reservas_entrada.csv";
+  document.getElementById("nombreFichero").value = "reservas_entrada.csv";
+  document.getElementById("pegador").value = "";
+  avisos("Cargado el CSV de ejemplo con 52 lineas. Pulsa Generar y consultar ficheros", "ok");
+  ejecutar();
+});
+document.getElementById("btnLimpiar").addEventListener("click", function(){
+  ESTADO.csv = "";
+  ESTADO.ejecucion = null;
+  document.getElementById("nombreFichero").value = "";
+  document.getElementById("pegador").value = "";
+  ["panelResumen", "panelPaises", "panelFicheros", "panelLog", "panelVista"].forEach(function(id){
+    document.getElementById(id).classList.add("oculto");
+  });
+  avisos("Listo para empezar de nuevo", "");
+});
+document.getElementById("btnGenerar").addEventListener("click", ejecutar);
+document.getElementById("btnZip").addEventListener("click", descargarZip);
+document.getElementById("btnTodos").addEventListener("click", function(){
+  var e = ESTADO.ejecucion;
+  if (!e || !e.ficheros.length) return;
+  avisos("El navegador permitira descargar " + e.ficheros.length + " ficheros. Si te bloquea la descarga multiple, usa el boton del ZIP", "ok");
+  var indice = 0;
+  (function siguiente(){
+    if (indice >= e.ficheros.length) return;
+    var f = e.ficheros[indice++];
+    descargar(f.texto, f.nombre);
+    setTimeout(siguiente, 350);
+  })();
+});
+document.getElementById("panelFicheros").addEventListener("click", function(ev){
+  var ver = ev.target.getAttribute("data-fichero");
+  var bajar = ev.target.getAttribute("data-descargar");
+  if (ver) {
+    var f = buscarFichero(ver);
+    if (f) {
+      document.getElementById("panelVista").classList.remove("oculto");
+      document.getElementById("vistaPrevia").innerHTML = "<details open><summary>" + esc(f.nombre) +
+        "</summary><pre class='pre'>" + esc(f.texto) + "</pre></details>";
+      document.getElementById("panelVista").scrollIntoView({ behavior: "smooth" });
+    }
+  }
+  if (bajar) {
+    var g = buscarFichero(bajar);
+    if (g) descargar(g.texto, g.nombre);
+  }
+});
+document.getElementById("pegador").addEventListener("input", function(){
+  if (this.value.trim()) {
+    ESTADO.csv = "";
+    ESTADO.nombre = "contenido_pegado.csv";
+    document.getElementById("nombreFichero").value = "contenido_pegado.csv";
+  }
+});
+</script>
+</body>
+</html>
