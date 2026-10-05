@@ -8,8 +8,8 @@ segun pide el enunciado.
 
 | Integrante | Reparto |
 | ---------- | ------- |
-| Marco | Catalogo de paises e IATA, entidad de reserva, identificador unico y localizador de coincidencias, interfaz web y documentacion |
-| Sebas | Lectura del CSV de entrada, agrupacion por pais de destino y generacion de los ficheros AirTortilla_XX_YYYY_MM_DD, CSV de ejemplo y pruebas automaticas |
+| Marco | Interfaz web en HTML, log del proceso, vista previa y descarga de los ficheros, identificador unico y localizador de coincidencias, documentacion |
+| Sebas | Lectura del CSV de entrada, catalogo de paises e IATA, agrupacion por pais de destino y generacion de los ficheros AirTortilla_XX_YYYY_MM_DD, CSV de ejemplo y pruebas automaticas |
 
 ## 1 Requisitos que cubre la solucion
 
@@ -112,6 +112,12 @@ Cambio registrado en la version 1.0.1 del 5 de octubre de 2026
 
 ## 3 Arquitectura
 
+Hay dos implementaciones del mismo nucleo
+
+```
+index.html  CATALOGO, construirReservas, resolverLocalizadores, procesar, crearZip
+```
+
 ```
 datos_ejemplo.py  genera el CSV de ejemplo
         |
@@ -130,6 +136,40 @@ vistas.py  HTML de la interfaz
         v
 servidor.py  rutas HTTP, subida de ficheros y descarga
 ```
+
+index.html es la entrega principal, se abre con doble clic y no necesita servidor
+ni instalar nada
+
+La version en Python hace lo mismo pero escribe los ficheros en el disco dentro
+de data/salida y ademas trae 23 pruebas automaticas
+
+Ambas implementaciones se han comprobado linea a linea y generan exactamente
+los mismos ficheros, los mismos identificadores y los mismos localizadores. Por
+ejemplo para la linea 7 del CSV de ejemplo las dos devuelven
+RES-6YY590FJZK y LOC-ANNASC-AM18
+
+### 3.1 Por que la entrega principal es un HTML suelto
+
+Un navegador abre fichero con doble clic y ya funciona, sin terminal, sin
+servidor y sin instalar dependencias, que es lo que se pide en una presentacion
+
+El limite es que por seguridad el navegador no puede escribir dentro de una
+carpeta del disco. Los ficheros se generan en memoria y se descargan. Para
+tenerlos ya escritos en una carpeta del disco esta la version en Python
+
+Por eso el boton de descarga genera un unico ZIP con los 28 CSV dentro de una
+carpeta salida. El ZIP se construye a mano con cabeceras locales, directorio
+central y registro final, con CRC-32 y sin compresion
+
+### 3.2 SHA-1 en JavaScript
+
+El identificador de reserva usa SHA-1 para que sea el mismo en las dos
+implementaciones. En index.html se implementa a mano porque crypto.subtle solo
+esta disponible en contexto seguro y no funciona siempre al abrir un fichero
+con doble clic
+
+La implementacion se valido contra los vectores de prueba conocidos, sha1 de la
+cadena vacia y sha1 de abc, y contra los valores que produce Python
 
 cli.py es la entrada de terminal y llama a las mismas funciones que la interfaz
 web, de forma que las dos modalidades se comportan igual
@@ -251,3 +291,4 @@ fichero por grupo
 | 1.0.0     | 2026-10-05 | Primera entrega, lectura de CSV, identificador, localizador, agrupado por pais de destino, interfaz web con las dos modalidades |
 | 1.0.1     | 2026-10-05 | Las lineas invalidas ya no generan ficheros, el numero de linea pasa a ser el fisico del CSV, la modalidad linea a linea reconstruye el fichero de destino y calcula los localizadores sobre lo ya procesado, subida de ficheros corregida para no pisar el CSV del servidor |
 | 1.0.2     | 2026-10-05 | Se anade al README y a esta documentacion el reparto de trabajo entre Marco y Sebas |
+| 1.1.0     | 2026-10-05 | index.html pasa a ser la entrega principal, interfaz web completa en un solo fichero sin servidor ni dependencias. Se corrige el catalogo de paises para los nombres con espacio y se reescribe el SHA-1 en JavaScript para que genere los mismos identificadores y localizadores que la version en Python. Se anade la descarga de todos los ficheros en un ZIP construido a mano |

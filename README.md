@@ -8,8 +8,8 @@ Proyecto de la entrega "Entrega Proyecto Ficheros" de AirTortilla.
 
 | Integrante | Reparto |
 | ---------- | ------- |
-| Marco | Catalogo de paises e IATA, entidad de reserva, identificador unico y localizador de coincidencias, interfaz web y documentacion |
-| Sebas | Lectura del CSV de entrada, agrupacion por pais de destino y generacion de los ficheros AirTortilla_XX_YYYY_MM_DD, CSV de ejemplo y pruebas automaticas |
+| Marco | Interfaz web en HTML, log del proceso, vista previa y descarga de los ficheros, identificador unico y localizador de coincidencias, documentacion |
+| Sebas | Lectura del CSV de entrada, catalogo de paises e IATA, agrupacion por pais de destino y generacion de los ficheros AirTortilla_XX_YYYY_MM_DD, CSV de ejemplo y pruebas automaticas |
 
 
 AirTortilla necesita repartir las reservas en ficheros independientes segun el
@@ -22,20 +22,52 @@ procedencia internacional de cada reserva.
 2 Valida cada linea
 3 Asigna un identificador unico a cada reserva
 4 Detecta los pasajeros que coinciden en nombre, origen y destino y les asigna
-  un localizador comun
+   un localizador comun
 5 Reparte las reservas en un fichero por pais de destino y fecha con el nombre
-  AirTortilla_XX_YYYY_MM_DD
+   AirTortilla_XX_YYYY_MM_DD
 6 Muestra todo el proceso en la interfaz web, en modalidad total y linea a linea
 
 ## Stack
 
-Python 3 con la libreria estandar. Sin dependencias externas, no hace falta
-pip install. La interfaz es web y se sirve con el servidor http de la libreria
-estandar.
+HTML y JavaScript en un unico fichero, sin librerias externas y sin servidor.
+La entrega principal es index.html, se abre haciendo doble clic y ya funciona.
 
-## Como se ejecuta
+Como segunda version del mismo proyecto esta la implementacion en Python 3 con
+la libreria estandar, que hace lo mismo pero deja los ficheros escritos en el
+disco dentro de data/salida. Sirve para ver el resultado en una carpeta.
 
-Opcion A, interfaz web
+## Como se ejecuta la entrega principal
+
+```
+index.html
+```
+
+Abre index.html con doble clic en cualquier navegador. No hay que instalar
+nada ni escribir ningun comando.
+
+En la pagina hay tres formas de darle el CSV
+
+| Forma | Como |
+| ----- | ---- |
+| CSV de ejemplo | Boton Cargar el CSV de ejemplo, 52 lineas de prueba |
+| Fichero propio | Arrastralo a la zona azul o pulsa para elegirlo |
+| Texto pegado | Pega el contenido en el cuadro de texto |
+
+Despues elige modalidad total o modalidad linea a linea y pulsa Generar y
+consultar ficheros
+
+Los ficheros se descargan con el boton del ZIP, que genera un unico
+AirTortilla_reservas_por_destino.zip con dentro los 28 CSV con el nombre
+AirTortilla_XX_YYYY_MM_DD en una carpeta salida
+
+Limitacion del navegador: por seguridad un navegador no puede escribir dentro
+de una carpeta del disco, asi que los ficheros se descargan desde el navegador
+en vez de aparecer en una carpeta. Quien necesite los ficheros ya escritos en
+disco puede usar la version en Python
+
+## Como se ejecuta la version en Python
+
+Interfaz web
 
 ```
 python main.py web
@@ -43,7 +75,7 @@ python main.py web
 
 Abre http://127.0.0.1:8000 en el navegador
 
-Opcion B, terminal
+Terminal
 
 ```
 python main.py generar
@@ -57,21 +89,23 @@ Pruebas
 python -m unittest discover -s tests
 ```
 
+
 ## Estructura
 
 ```
-main.py                     punto de entrada
-airtortilla/paises.py       catalogo pais -> codigo IATA
-airtortilla/modelos.py      entidad Reserva, identificador y localizador
-airtortilla/lector_csv.py   lectura y escritura de CSV
-airtortilla/procesador.py   agrupacion por pais de destino y generacion
-airtortilla/vistas.py       interfaz web en HTML
-airtortilla/servidor.py     servidor web y rutas
-airtortilla/cli.py          comandos de terminal
+index.html                   ENTREGA PRINCIPAL, interfaz web completa en un solo fichero
+main.py                      punto de entrada de la version en Python
+airtortilla/paises.py         catalogo pais -> codigo IATA
+airtortilla/modelos.py        entidad Reserva, identificador y localizador
+airtortilla/lector_csv.py     lectura y escritura de CSV
+airtortilla/procesador.py     agrupacion por pais de destino y generacion
+airtortilla/vistas.py         interfaz web en HTML de la version Python
+airtortilla/servidor.py       servidor web y rutas
+airtortilla/cli.py            comandos de terminal
 airtortilla/datos_ejemplo.py  CSV de ejemplo con los casos de coincidencia
-data/reservas_entrada.csv   CSV de entrada
-data/salida/                ficheros generados
-tests/                      pruebas automaticas
+data/reservas_entrada.csv     CSV de entrada
+data/salida/                  ficheros generados por la version Python
+tests/                        pruebas automaticas de la version Python
 ```
 
 ## Formato del CSV de entrada
@@ -188,7 +222,13 @@ fichero, la 2 es la primera reserva porque la 1 es la cabecera
 
 ## Interfaz web
 
-Panel de entrada con selector de fichero del servidor y subida de un CSV propio
+index.html lleva todo lo siguiente
+
+Zona de arrastre para soltar el CSV y selector de fichero del equipo
+
+Boton Cargar el CSV de ejemplo con las 52 lineas de prueba
+
+Cuadro de texto para pegar el contenido del CSV
 
 Selector de modalidad, total o linea a linea con su numero de linea
 
@@ -198,6 +238,8 @@ ficheros generados, paises destino y lineas descartadas
 Resumen por pais de destino con enlace a cada fichero
 
 Tabla de ficheros con ver y descargar
+
+Boton de descarga de todos los ficheros en un unico ZIP
 
 Log del proceso agrupado por destino
 
@@ -213,9 +255,9 @@ contacto recomendados
 
 | Modulo              | Que habria que cambiar                        |
 | ------------------- | --------------------------------------------- |
-| airtortilla/paises.py  | Catalogo, se puede sustituir por una API externa |
-| airtortilla/lector_csv.py | Lectura, se puede cambiar por una libreria de CSV |
-| airtortilla/modelos.py  | Entidad y calculo de identificador y localizador |
-| airtortilla/procesador.py | Nucleo del agrupado por pais de destino      |
+| CATALOGO de index.html | Catalogo, se puede sustituir por una API externa |
+| construirReservas de index.html | Lectura, se puede cambiar por una libreria de CSV |
+| resolverLocalizadores de index.html | Entidad y calculo de identificador y localizador |
+| procesar de index.html | Nucleo del agrupado por pais de destino      |
 | airtortilla/vistas.py   | Interfaz, se puede migrar a React Vue o similar |
 | airtortilla/servidor.py | Servidor, se puede migrar a FastAPI o Django   |
