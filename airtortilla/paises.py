@@ -193,7 +193,7 @@ SINONIMOS_PAIS = {
 def normalizar_texto(valor):
     if valor is None:
         return ""
-    texto = str(valor).strip()
+    texto = str(valor).replace("\ufeff", "").strip()
     if not texto:
         return ""
     descompuesto = unicodedata.normalize("NFKD", texto)
