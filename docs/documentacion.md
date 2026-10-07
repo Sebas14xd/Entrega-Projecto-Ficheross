@@ -15,12 +15,12 @@ segun pide el enunciado.
 
 | Elemento del reparto | Donde esta implementado | Pruebas |
 | -------------------- | ----------------------- | ------- |
-| Lectura del CSV de entrada | airtortilla/lector_csv.py, leer_texto y leer_reservas | PruebaLecturaCsv |
-| Catalogo de paises e IATA | airtortilla/paises.py, CODIGO_IATA_POR_PAIS y codigo_iata | PruebaCatalogoPaises, PruebaPaises |
-| Agrupacion por pais de destino | airtortilla/procesador.py, clave_agrupacion_destino | PruebaAgrupacionPorPais, PruebaProcesoTotal |
-| Generacion de los ficheros AirTortilla_XX_YYYY_MM_DD | airtortilla/procesador.py, nombre_fichero y procesar_reservas | PruebaNombreFichero, PruebaAgrupacionPorPais |
-| CSV de ejemplo | data/reservas_entrada.csv y airtortilla/datos_ejemplo.py | PruebaCsvEjemplo |
-| Pruebas automaticas | tests/test_lectura_csv.py y tests/test_airtortilla.py | 54 pruebas |
+| Lectura del CSV de entrada | airtortilla/nucleo.py, leer_texto y leer_reservas | PruebaLecturaCsv |
+| Catalogo de paises e IATA | airtortilla/nucleo.py, PAISES y codigo_iata | PruebaCatalogo |
+| Agrupacion por pais de destino | airtortilla/nucleo.py, clave iata mas fecha en procesar | PruebaAgrupacion |
+| Generacion de los ficheros AirTortilla_XX_YYYY_MM_DD | airtortilla/nucleo.py, nombre_fichero y escribir_fichero | PruebaAgrupacion |
+| CSV de ejemplo | airtortilla/nucleo.py, constante EJEMPLO, sin fichero en el repositorio | PruebaCsvEjemplo |
+| Pruebas automaticas | tests/test_nucleo.py | 27 pruebas |
 
 La lectura del CSV no depende de la codificacion del fichero. leer_texto abre el
 fichero en binario, quita el BOM si lo hay y prueba utf-8, cp1252 y latin-1 en
@@ -39,14 +39,14 @@ Decision registrada en la version 1.2.0 del 7 de octubre de 2026
 
 | Requisito | Donde se resuelve |
 | --------- | ---------------- |
-| Leer un CSV con Destino, Origen y Nombre del Pasajero | airtortilla/lector_csv.py |
-| Identificacion inequivoca de cada reserva | airtortilla/modelos.py, campo id_reserva |
-| Localizador cuando coinciden nombre, origen y destino | airtortilla/modelos.py, resolver_localizadores |
-| Minimo 3 casos de coincidencia, uno de 5 personas | data/reservas_entrada.csv |
-| Ficheros AirTortilla_XX_YYYY_MM_DD por pais de destino | airtortilla/procesador.py, nombre_fichero |
-| Interfaz que activa las funciones | airtortilla/servidor.py y airtortilla/vistas.py |
-| Modalidad total y modalidad linea a linea | airtortilla/procesador.py, parametro solo_linea |
-| Ver el proceso de golpe | airtortilla/procesador.py, claves log y detalle |
+| Leer un CSV con Destino, Origen y Nombre del Pasajero | airtortilla/nucleo.py, leer_reservas |
+| Identificacion inequivoca de cada reserva | airtortilla/nucleo.py, id_reserva en leer_reservas |
+| Localizador cuando coinciden nombre, origen y destino | airtortilla/nucleo.py, resolver_localizadores |
+| Minimo 3 casos de coincidencia, uno de 5 personas | constante EJEMPLO de airtortilla/nucleo.py |
+| Ficheros AirTortilla_XX_YYYY_MM_DD por pais de destino | airtortilla/nucleo.py, nombre_fichero |
+| Interfaz que activa las funciones | index.html, entrega principal |
+| Modalidad total y modalidad linea a linea | airtortilla/nucleo.py, parametro linea de procesar |
+| Ver el proceso de golpe | airtortilla/nucleo.py, clave log de procesar |
 
 ## 2 Decisiones de diseno
 
@@ -60,7 +60,7 @@ Decision registrada en la version 1.0.0 del 5 de octubre de 2026
 
 ### 2.2 Catalogo de paises propio
 
-Se incluye un catalogo de pais con su codigo IATA en airtortilla/paises.py para
+Se incluye un catalogo de pais con su codigo IATA en airtortilla/nucleo.py para
 no depender de internet ni de una libreria externa
 
 La normalizacion quita tildes y pasa a mayusculas, de forma que el CSV puede
@@ -143,29 +143,29 @@ index.html  CATALOGO, construirReservas, resolverLocalizadores, procesar, crearZ
 ```
 
 ```
-datos_ejemplo.py  genera el CSV de ejemplo
+EJEMPLO  CSV de ejemplo en memoria, sin fichero en el repositorio
         |
         v
-lector_csv.py  texto -> lista de Reserva
+leer_reservas  texto -> lista de reservas validadas
         |
         v
-modelos.py  validacion, id_reserva y localizadores
+resolver_localizadores  identificador y localizador por grupo
         |
         v
-procesador.py  agrupado por IATA y fecha -> ficheros de salida
+procesar  agrupado por IATA y fecha -> ficheros de salida
         |
         v
-vistas.py  HTML de la interfaz
+index.html  misma logica en JavaScript dentro del navegador
         |
         v
-servidor.py  rutas HTTP, subida de ficheros y descarga
+lanzar_web  sirve index.html en http://127.0.0.1:8000
 ```
 
 index.html es la entrega principal, se abre con doble clic y no necesita servidor
 ni instalar nada
 
 La version en Python hace lo mismo pero escribe los ficheros en el disco dentro
-de data/salida y ademas trae 54 pruebas automaticas
+de data/salida y ademas trae 27 pruebas automaticas
 
 Ambas implementaciones se han comprobado linea a linea y generan exactamente
 los mismos ficheros, los mismos identificadores y los mismos localizadores. Por
@@ -195,7 +195,7 @@ con doble clic
 La implementacion se valido contra los vectores de prueba conocidos, sha1 de la
 cadena vacia y sha1 de abc, y contra los valores que produce Python
 
-cli.py es la entrada de terminal y llama a las mismas funciones que la interfaz
+main.py es la entrada de terminal y llama a las mismas funciones que la interfaz
 web, de forma que las dos modalidades se comportan igual
 
 ## 4 Formato de los ficheros
@@ -269,32 +269,29 @@ Marruecos
 python -m unittest discover -s tests
 ```
 
-54 pruebas repartidas en dos ficheros, test_airtortilla.py y test_lectura_csv.py
+27 pruebas en un unico fichero, tests/test_nucleo.py
 
 | Grupo            | Cobertura                                        |
 | ---------------- | ------------------------------------------------ |
-| PruebaPaises     | Codigo IATA con y sin tildes, codigo directo, pais desconocido |
-| PruebaCatalogoPaises | Sinonimos, codigos de dos letras, destinos del CSV de ejemplo catalogados |
-| PruebaFechas     | Formatos aceptados y fecha invalida              |
-| PruebaNombreFichero | Formato AirTortilla_XX_YYYY_MM_DD             |
-| PruebaProcesoTotal | Un fichero por pais, formato de nombre, ids unicos, grupo de 5, tres casos de coincidencia, lineas invalidas descartadas |
-| PruebaProcesoLinea | Una sola linea, cabecera, linea inexistente    |
-| PruebaReinicio   | Borrado solo de ficheros AirTortilla             |
-| PruebaInterfazWeb | Inicio, modalidad total, modalidad linea a linea, subida de fichero sin pisar el original |
-| PruebaLecturaCsv | UTF-8 con BOM, cp1252, latin-1, texto pegado, delimitador, cabeceras, numeros de linea |
-| PruebaAgrupacionPorPais | Un fichero por pais y fecha, nombre del fichero, lineas invalidas sin fichero |
-| PruebaCsvEjemplo | Existe, 52 reservas, tres casos de coincidencia, grupo de 5, dos lineas invalidas, 28 ficheros |
+| PruebaLecturaCsv | UTF-8 con BOM, cp1252, latin-1, texto pegado, delimitador, cabeceras, fechas, fichero vacio |
+| PruebaCatalogo   | Codigo directo, sinonimos, tildes, pais desconocido, catalogo identico al de index.html |
+| PruebaAgrupacion | Un fichero por pais y fecha, formato del nombre, modalidad linea a linea, lineas invalidas sin fichero |
+| PruebaCsvEjemplo | 52 reservas, tres casos de coincidencia, grupo de 5, dos lineas invalidas, 28 ficheros |
 
-## 8 Rutas de la interfaz web
+## 8 Interfaz web
+
+index.html es la interfaz y no depende de Python. Se abre haciendo doble clic y
+funciona sin servidor, con el catalogo, el CSV de ejemplo y las dos modalidades
+dentro del propio fichero
+
+Si se quiere servir desde Python
 
 | Ruta                     | Metodo | Descripcion                                |
 | ------------------------ | ------ | ------------------------------------------ |
-| /                        | GET    | Panel principal                            |
-| /procesar                | POST   | Ejecuta el proceso y vuelve al panel       |
-| /limpiar                 | POST   | Borra los ficheros generados               |
-| /fichero/nombre.csv      | GET    | Muestra el contenido de un fichero         |
-| /descargar/nombre.csv    | GET    | Descarga el fichero                        |
-| /salida                  | GET    | Listado plano de los ficheros generados    |
+| /                        | GET    | Sirve index.html                           |
+
+Los botones de la pagina no llaman al servidor, todo el proceso se hace en el
+navegador y los ficheros se descargan en un ZIP
 
 ## 9 Puntos de migracion
 
@@ -305,11 +302,11 @@ Si se pide migrar a otra tecnologia del enunciado
 | Java       | Reescribir los modulos como clases, usar java.nio y una libreria CSV     |
 | C#         | Reescribir los modulos, usar System.IO y una libreria CSV              |
 | Go         | Reescribir los modulos, usar encoding/csv                              |
-| Node.js    | Portar lector, modelos y procesador, Express en lugar del servidor http |
+| Node.js    | Portar airtortilla/nucleo.py, Express en lugar del servidor http     |
 | PHP        | Portar los modulos a funciones o clases, PHP built in server            |
 
-El nucleo a migrar es siempre el mismo, la funcion procesar_reservas de
-airtortilla/procesador.py, que agrupa por codigo IATA y fecha y escribe un
+El nucleo a migrar es siempre el mismo, la funcion procesar de
+airtortilla/nucleo.py, que agrupa por codigo IATA y fecha y escribe un
 fichero por grupo
 
 ## 10 Registro de versiones
@@ -320,4 +317,5 @@ fichero por grupo
 | 1.0.1     | 2026-10-05 | Las lineas invalidas ya no generan ficheros, el numero de linea pasa a ser el fisico del CSV, la modalidad linea a linea reconstruye el fichero de destino y calcula los localizadores sobre lo ya procesado, subida de ficheros corregida para no pisar el CSV del servidor |
 | 1.0.2     | 2026-10-05 | Se anade al README y a esta documentacion el reparto de trabajo entre Marco y Sebas |
 | 1.1.0     | 2026-10-05 | index.html pasa a ser la entrega principal, interfaz web completa en un solo fichero sin servidor ni dependencias. Se corrige el catalogo de paises para los nombres con espacio y se reescribe el SHA-1 en JavaScript para que genere los mismos identificadores y localizadores que la version en Python. Se anade la descarga de todos los ficheros en un ZIP construido a mano |
-| 1.2.0     | 2026-10-07 | Se documenta la parte de Sebas en el apartado 0.1. Se anaden las pruebas automaticas de esa parte en tests/test_lectura_csv.py, que cubren la lectura del CSV en utf-8, cp1252 y latin-1, el catalogo de paises, la agrupacion por pais y fecha y el CSV de ejemplo. La suite pasa de 23 a 54 pruebas |
+| 1.2.0     | 2026-10-07 | Se documenta la parte de Sebas en el apartado 0.1. Se anaden las pruebas automaticas de esa parte, que cubren la lectura del CSV en utf-8, cp1252 y latin-1, el catalogo de paises, la agrupacion por pais y fecha y el CSV de ejemplo |
+| 2.0.0     | 2026-10-07 | Se elimina todo CSV del repositorio, el CSV de ejemplo pasa a ser la constante EJEMPLO dentro del codigo. El paquete de nueve modulos pasa a ser un unico fichero airtortilla/nucleo.py sin comentarios y con la misma salida. El servidor Python deja de tener rutas propias y solo sirve index.html. La suite queda en 27 pruebas en un unico fichero |

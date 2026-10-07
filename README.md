@@ -81,7 +81,13 @@ Terminal
 python main.py generar
 python main.py generar --linea 6
 python main.py generar -f data/mi_fichero.csv -s data/salida
+python main.py ejemplo
 ```
+
+Sin `-f`, `generar` usa el CSV de ejemplo que esta dentro del codigo, asi que el
+repositorio no lleva ningun fichero .csv. `python main.py ejemplo` escribe ese
+mismo CSV en data/reservas_entrada.csv si hace falta un fichero fisico, y
+`data/*.csv` esta ignorado por git
 
 Pruebas
 
@@ -95,18 +101,10 @@ python -m unittest discover -s tests
 ```
 index.html                   ENTREGA PRINCIPAL, interfaz web completa en un solo fichero
 main.py                      punto de entrada de la version en Python
-airtortilla/paises.py         catalogo pais -> codigo IATA
-airtortilla/modelos.py        entidad Reserva, identificador y localizador
-airtortilla/lector_csv.py     lectura y escritura de CSV
-airtortilla/procesador.py     agrupacion por pais de destino y generacion
-airtortilla/vistas.py         interfaz web en HTML de la version Python
-airtortilla/servidor.py       servidor web y rutas
-airtortilla/cli.py            comandos de terminal
-airtortilla/datos_ejemplo.py  CSV de ejemplo con los casos de coincidencia
-data/reservas_entrada.csv     CSV de entrada
+airtortilla/nucleo.py         lectura de CSV, catalogo IATA, agrupacion y ficheros
+airtortilla/nucleo.py EJEMPLO CSV de ejemplo con los casos de coincidencia
 data/salida/                  ficheros generados por la version Python
-tests/                        pruebas automaticas de la version Python
-tests/test_lectura_csv.py     pruebas de lectura, catalogo, agrupacion y ejemplo
+tests/test_nucleo.py          pruebas automaticas de la version Python
 ```
 
 ## Formato del CSV de entrada
@@ -190,7 +188,7 @@ Ejemplo del grupo de cinco pasajeros coincidentes del fichero de ejemplo
 LOC-ANNASC-AM18    ANNA SCHMIDT, ALEMANIA -> JAPON, 5 viajeros
 ```
 
-Casos de coincidencia incluidos en data/reservas_entrada.csv
+Casos de coincidencia incluidos en el CSV de ejemplo
 
 | Caso | Pasajero      | Origen  | Destino  | Viajeros |
 | ---- | ------------- | ------- | -------- | -------- |
@@ -260,5 +258,5 @@ contacto recomendados
 | construirReservas de index.html | Lectura, se puede cambiar por una libreria de CSV |
 | resolverLocalizadores de index.html | Entidad y calculo de identificador y localizador |
 | procesar de index.html | Nucleo del agrupado por pais de destino      |
-| airtortilla/vistas.py   | Interfaz, se puede migrar a React Vue o similar |
-| airtortilla/servidor.py | Servidor, se puede migrar a FastAPI o Django   |
+| airtortilla/nucleo.py  | Implementacion en Python, se puede migrar a Java, C# o Go |
+| lanzar_web de airtortilla/nucleo.py | Servidor, se puede migrar a FastAPI o Django |

@@ -8,3 +8,5 @@ venv/
 Thumbs.db
 data/salida/*.csv
 data/temporal/
+
+data/*.csv
