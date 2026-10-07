@@ -1,0 +1,4 @@
+El proyecto usa unicamente la libreria estandar de Python 3.
+No hace falta instalar nada con pip.
+
+Requisito minimo: Python 3.8 o superior.

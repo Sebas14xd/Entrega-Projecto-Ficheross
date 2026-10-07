@@ -1,3 +1,10 @@
 __pycache__/
 *.pyc
-salida*.csv
+*.pyo
+.venv/
+venv/
+.env
+.DS_Store
+Thumbs.db
+data/salida/*.csv
+data/temporal/
