@@ -11,6 +11,30 @@ segun pide el enunciado.
 | Marco | Interfaz web en HTML, log del proceso, vista previa y descarga de los ficheros, identificador unico y localizador de coincidencias, documentacion |
 | Sebas | Lectura del CSV de entrada, catalogo de paises e IATA, agrupacion por pais de destino y generacion de los ficheros AirTortilla_XX_YYYY_MM_DD, CSV de ejemplo y pruebas automaticas |
 
+### 0.1 Detalle de la parte de Sebas
+
+| Elemento del reparto | Donde esta implementado | Pruebas |
+| -------------------- | ----------------------- | ------- |
+| Lectura del CSV de entrada | airtortilla/lector_csv.py, leer_texto y leer_reservas | PruebaLecturaCsv |
+| Catalogo de paises e IATA | airtortilla/paises.py, CODIGO_IATA_POR_PAIS y codigo_iata | PruebaCatalogoPaises, PruebaPaises |
+| Agrupacion por pais de destino | airtortilla/procesador.py, clave_agrupacion_destino | PruebaAgrupacionPorPais, PruebaProcesoTotal |
+| Generacion de los ficheros AirTortilla_XX_YYYY_MM_DD | airtortilla/procesador.py, nombre_fichero y procesar_reservas | PruebaNombreFichero, PruebaAgrupacionPorPais |
+| CSV de ejemplo | data/reservas_entrada.csv y airtortilla/datos_ejemplo.py | PruebaCsvEjemplo |
+| Pruebas automaticas | tests/test_lectura_csv.py y tests/test_airtortilla.py | 54 pruebas |
+
+La lectura del CSV no depende de la codificacion del fichero. leer_texto abre el
+fichero en binario, quita el BOM si lo hay y prueba utf-8, cp1252 y latin-1 en
+ese orden, de forma que un CSV guardado desde Windows con acentos se lee igual
+que uno guardado en UTF-8
+
+El catalogo de paises esta en un solo diccionario para que se pueda ampliar sin
+tocar el resto. Admite el nombre del pais, el nombre con o sin tildes, el
+codigo IATA de dos letras directamente y una lista de sinonimos como EEUU o
+HOLANDA. La clave de agrupacion es el codigo IATA del destino mas la fecha, que
+es lo que define el nombre del fichero de salida
+
+Decision registrada en la version 1.2.0 del 7 de octubre de 2026
+
 ## 1 Requisitos que cubre la solucion
 
 | Requisito | Donde se resuelve |
@@ -141,7 +165,7 @@ index.html es la entrega principal, se abre con doble clic y no necesita servido
 ni instalar nada
 
 La version en Python hace lo mismo pero escribe los ficheros en el disco dentro
-de data/salida y ademas trae 23 pruebas automaticas
+de data/salida y ademas trae 54 pruebas automaticas
 
 Ambas implementaciones se han comprobado linea a linea y generan exactamente
 los mismos ficheros, los mismos identificadores y los mismos localizadores. Por
@@ -245,17 +269,21 @@ Marruecos
 python -m unittest discover -s tests
 ```
 
-23 pruebas que cubren
+54 pruebas repartidas en dos ficheros, test_airtortilla.py y test_lectura_csv.py
 
 | Grupo            | Cobertura                                        |
 | ---------------- | ------------------------------------------------ |
 | PruebaPaises     | Codigo IATA con y sin tildes, codigo directo, pais desconocido |
+| PruebaCatalogoPaises | Sinonimos, codigos de dos letras, destinos del CSV de ejemplo catalogados |
 | PruebaFechas     | Formatos aceptados y fecha invalida              |
 | PruebaNombreFichero | Formato AirTortilla_XX_YYYY_MM_DD             |
 | PruebaProcesoTotal | Un fichero por pais, formato de nombre, ids unicos, grupo de 5, tres casos de coincidencia, lineas invalidas descartadas |
 | PruebaProcesoLinea | Una sola linea, cabecera, linea inexistente    |
 | PruebaReinicio   | Borrado solo de ficheros AirTortilla             |
 | PruebaInterfazWeb | Inicio, modalidad total, modalidad linea a linea, subida de fichero sin pisar el original |
+| PruebaLecturaCsv | UTF-8 con BOM, cp1252, latin-1, texto pegado, delimitador, cabeceras, numeros de linea |
+| PruebaAgrupacionPorPais | Un fichero por pais y fecha, nombre del fichero, lineas invalidas sin fichero |
+| PruebaCsvEjemplo | Existe, 52 reservas, tres casos de coincidencia, grupo de 5, dos lineas invalidas, 28 ficheros |
 
 ## 8 Rutas de la interfaz web
 
@@ -292,3 +320,4 @@ fichero por grupo
 | 1.0.1     | 2026-10-05 | Las lineas invalidas ya no generan ficheros, el numero de linea pasa a ser el fisico del CSV, la modalidad linea a linea reconstruye el fichero de destino y calcula los localizadores sobre lo ya procesado, subida de ficheros corregida para no pisar el CSV del servidor |
 | 1.0.2     | 2026-10-05 | Se anade al README y a esta documentacion el reparto de trabajo entre Marco y Sebas |
 | 1.1.0     | 2026-10-05 | index.html pasa a ser la entrega principal, interfaz web completa en un solo fichero sin servidor ni dependencias. Se corrige el catalogo de paises para los nombres con espacio y se reescribe el SHA-1 en JavaScript para que genere los mismos identificadores y localizadores que la version en Python. Se anade la descarga de todos los ficheros en un ZIP construido a mano |
+| 1.2.0     | 2026-10-07 | Se documenta la parte de Sebas en el apartado 0.1. Se anaden las pruebas automaticas de esa parte en tests/test_lectura_csv.py, que cubren la lectura del CSV en utf-8, cp1252 y latin-1, el catalogo de paises, la agrupacion por pais y fecha y el CSV de ejemplo. La suite pasa de 23 a 54 pruebas |

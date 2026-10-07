@@ -106,6 +106,7 @@ airtortilla/datos_ejemplo.py  CSV de ejemplo con los casos de coincidencia
 data/reservas_entrada.csv     CSV de entrada
 data/salida/                  ficheros generados por la version Python
 tests/                        pruebas automaticas de la version Python
+tests/test_lectura_csv.py     pruebas de lectura, catalogo, agrupacion y ejemplo
 ```
 
 ## Formato del CSV de entrada
