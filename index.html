@@ -917,15 +917,22 @@ function apiCuenta(ruta, metodo, datos){
   if(datos) opciones.body=JSON.stringify(datos);
   return fetch(ruta,opciones).then(function(respuesta){
     var tipo = respuesta.headers.get("Content-Type") || "";
-    var promesa = tipo.indexOf("application/json") >= 0 ? respuesta.json() : respuesta.text().then(function(texto){
-      throw new Error("Respuesta no valida del servidor. Ejecuta python main.py web y abre http://127.0.0.1:8000.");
-    });
-    return promesa.then(function(cuerpo){
+    if (tipo.indexOf("application/json") < 0) {
+      var e = new Error("NO_API");
+      e.noApi = true;
+      throw e;
+    }
+    return respuesta.json().then(function(cuerpo){
       if(!respuesta.ok) throw new Error((cuerpo && cuerpo.error) || "No se pudo completar la operación");
       return cuerpo;
     });
   }).catch(function(error){
-    if(error instanceof TypeError) throw new Error("No hay conexión con el servidor. Ejecuta python main.py web y abre http://127.0.0.1:8000.");
+    if(error && error.noApi) throw error;
+    if(error instanceof TypeError) {
+      var e = new Error("NO_API");
+      e.noApi = true;
+      throw e;
+    }
     throw error;
   });
 }
@@ -1022,7 +1029,31 @@ document.getElementById("pegador").addEventListener("input", function(){
 </script>
 <script>
 (function(){
-  function mostrarApp(usuario){
+  var CLAVE_USUARIOS = "airtortilla_usuarios";
+  var CLAVE_SESION = "airtortilla_sesion";
+  function cargarUsuarios(){
+    var base = [{ usuario: "admin", clave: "admin123" }];
+    try {
+      var raw = localStorage.getItem(CLAVE_USUARIOS);
+      if (!raw) {
+        localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(base));
+        return base;
+      }
+      var datos = JSON.parse(raw);
+      if (!Array.isArray(datos) || !datos.length) {
+        localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(base));
+        return base;
+      }
+      return datos;
+    } catch (e) {
+      localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(base));
+      return base;
+    }
+  }
+  function guardarUsuarios(usuarios){
+    try { localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(usuarios)); } catch (e) {}
+  }
+  function mostrarApp(usuario, modoLocal){
     var login = document.getElementById("loginVista");
     var app = document.querySelector(".envoltorio");
     if (login) login.style.display = "none";
@@ -1034,9 +1065,17 @@ document.getElementById("pegador").addEventListener("input", function(){
       barra.className = "login-top";
       barra.innerHTML = '<div class="login-user">Sesion iniciada: <strong id="usuarioActual"></strong></div><button class="boton secundario" id="btnSalir" type="button">Salir</button>';
       app.insertBefore(barra, app.firstChild);
-      document.getElementById("btnSalir").addEventListener("click", function(){
-        apiCuenta("/api/sesion","DELETE").finally(function(){location.reload();});
-      });
+    }
+    var btnSalir = document.getElementById("btnSalir");
+    if (btnSalir) {
+      btnSalir.onclick = function(){
+        if (modoLocal) {
+          try { localStorage.removeItem(CLAVE_SESION); } catch (e) {}
+          location.reload();
+        } else {
+          apiCuenta("/api/sesion","DELETE").finally(function(){location.reload();});
+        }
+      };
     }
     var actual = document.getElementById("usuarioActual");
     if (actual) actual.textContent = usuario;
@@ -1053,34 +1092,71 @@ document.getElementById("pegador").addEventListener("input", function(){
     el.textContent = texto;
     el.className = "login-msg " + (tipo || "");
   }
+  var sesionLocal = "";
+  try { sesionLocal = localStorage.getItem(CLAVE_SESION) || ""; } catch (e) {}
+  cargarUsuarios();
   mostrarLogin();
-  apiCuenta("/api/yo","GET").then(function(r){
-    mostrarApp(r.usuario.nombre);
-  }).catch(function(){
-    mostrarLogin();
-  });
+  if (sesionLocal) {
+    mostrarApp(sesionLocal, true);
+  } else {
+    apiCuenta("/api/yo","GET").then(function(r){
+      mostrarApp(r.usuario.nombre, false);
+    }).catch(function(){ mostrarLogin(); });
+  }
   document.getElementById("btnLogin").addEventListener("click", function(){
     var usuario = (document.getElementById("loginUsuario").value || "").trim();
     var clave = document.getElementById("loginClave").value || "";
     apiCuenta("/api/sesion","POST",{nombre:usuario,clave:clave}).then(function(r){
       mensaje("loginMsg", "Acceso correcto. Puedes entrar a la pagina.", "ok");
-      mostrarApp(r.usuario.nombre);
+      mostrarApp(r.usuario.nombre, false);
       document.getElementById("loginClave").value="";
-    }).catch(function(error){mensaje("loginMsg",error.message,"error");});
+    }).catch(function(error){
+      if (error && error.noApi) {
+        var usuarios = cargarUsuarios();
+        var valido = usuarios.some(function(u){ return u.usuario === usuario && u.clave === clave; });
+        if (valido) {
+          try { localStorage.setItem(CLAVE_SESION, usuario); } catch (e) {}
+          mensaje("loginMsg", "Acceso correcto. Puedes entrar a la pagina.", "ok");
+          mostrarApp(usuario, true);
+          document.getElementById("loginClave").value="";
+        } else {
+          mensaje("loginMsg", "Usuario o contrasena incorrectos.", "error");
+        }
+      } else {
+        mensaje("loginMsg", error.message, "error");
+      }
+    });
   });
   document.getElementById("btnCrearUsuario").addEventListener("click", function(){
     var usuario = (document.getElementById("nuevoUsuario").value || "").trim();
     var clave = document.getElementById("nuevaClave").value || "";
-    if (!usuario || clave.length < 8) {
-      mensaje("crearMsg", "Escribe un usuario y una contrasena de al menos 8 caracteres.", "error");
+    if (!usuario || clave.length < 4) {
+      mensaje("crearMsg", "Escribe un usuario y una contrasena.", "error");
       return;
     }
     apiCuenta("/api/usuarios","POST",{nombre:usuario,clave:clave}).then(function(r){
       document.getElementById("nuevoUsuario").value = "";
       document.getElementById("nuevaClave").value = "";
-      mensaje("crearMsg", "Usuario creado y guardado en la base de datos.", "ok");
-      mostrarApp(r.usuario.nombre);
-    }).catch(function(error){mensaje("crearMsg",error.message,"error");});
+      mensaje("crearMsg", "Usuario creado correctamente.", "ok");
+      mostrarApp(r.usuario.nombre, false);
+    }).catch(function(error){
+      if (error && error.noApi) {
+        var usuarios = cargarUsuarios();
+        if (usuarios.some(function(u){ return u.usuario === usuario; })) {
+          mensaje("crearMsg", "Ese usuario ya existe.", "error");
+          return;
+        }
+        usuarios.push({ usuario: usuario, clave: clave });
+        guardarUsuarios(usuarios);
+        try { localStorage.setItem(CLAVE_SESION, usuario); } catch (e) {}
+        document.getElementById("nuevoUsuario").value = "";
+        document.getElementById("nuevaClave").value = "";
+        mensaje("crearMsg", "Usuario creado correctamente.", "ok");
+        mostrarApp(usuario, true);
+      } else {
+        mensaje("crearMsg", error.message, "error");
+      }
+    });
   });
 })();
 </script>
