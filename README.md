@@ -10,6 +10,15 @@ Proyecto de la entrega "Entrega Proyecto Ficheros" de AirTortilla.
 | ---------- | ------- |
 | Marco | Interfaz web en HTML, log del proceso, vista previa y descarga de los ficheros, identificador unico y localizador de coincidencias, documentacion |
 | Sebas | Lectura del CSV de entrada, catalogo de paises e IATA, agrupacion por pais de destino y generacion de los ficheros AirTortilla_XX_YYYY_MM_DD, CSV de ejemplo y pruebas automaticas |
+
+## Usuarios, login y base de datos
+
+En esta parte se ha anadido lo siguiente:
+
+- **Login y gestion de usuarios (Sebas)**: pantalla de inicio de sesion, acceso de empleados, creacion de usuarios nuevos y comprobacion de que el acceso funciona correctamente.
+- **Base de datos (Marco)**: se ha preparado la parte de base de datos para guardar la informacion y los cambios de la aplicacion.
+
+La pagina principal sigue funcionando igual que antes, solo se ha anadido el acceso de usuarios. Si se abre desde GitHub Pages, el login y la creacion de usuarios funcionan en el navegador. Si se ejecuta con `python main.py web`, la aplicacion puede usar el servidor y la base de datos.
 | Persona 2 | Base de datos SQLite, usuarios y registro de operaciones |
 
 
