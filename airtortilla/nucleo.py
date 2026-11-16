@@ -1,12 +1,15 @@
 import csv
 import hashlib
 import io
+import json
 import os
 import re
 import sys
 import unicodedata
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.cookies import SimpleCookie
+from airtortilla import base_datos
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ALFABETO = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
@@ -288,16 +291,82 @@ def crear_csv_ejemplo(ruta):
 
 
 def lanzar_web(puerto=8000):
+    sesiones = {}
 
     class Manejador(BaseHTTPRequestHandler):
 
+        def _json(self, estado, datos, cookie=None):
+            cuerpo = json.dumps(datos, ensure_ascii=False).encode("utf-8")
+            self.send_response(estado)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(cuerpo)))
+            if cookie:
+                self.send_header("Set-Cookie", cookie)
+            self.end_headers()
+            self.wfile.write(cuerpo)
+
+        def _usuario(self):
+            cookies = SimpleCookie(self.headers.get("Cookie", ""))
+            token = cookies.get("airtortilla_sesion")
+            return sesiones.get(token.value) if token else None
+
+        def _cuerpo(self):
+            largo = int(self.headers.get("Content-Length", "0"))
+            return json.loads(self.rfile.read(largo).decode("utf-8") or "{}")
+
         def do_GET(self):
+            if self.path == "/api/yo":
+                usuario = self._usuario()
+                return self._json(200, {"usuario": usuario})
+            if self.path == "/api/cambios":
+                if not self._usuario():
+                    return self._json(401, {"error": "Inicia sesión para consultar el historial"})
+                return self._json(200, {"cambios": base_datos.listar_cambios()})
             with open(os.path.join(RAIZ, "index.html"), "rb") as manejador:
                 cuerpo = manejador.read()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             self.wfile.write(cuerpo)
+
+        def do_POST(self):
+            try:
+                datos = self._cuerpo()
+                if self.path == "/api/usuarios":
+                    usuario = base_datos.crear_usuario(datos.get("nombre"), datos.get("clave"))
+                    token = os.urandom(32).hex()
+                    sesiones[token] = usuario
+                    self._json(201, {"usuario": usuario}, "airtortilla_sesion={}; HttpOnly; SameSite=Strict; Path=/".format(token))
+                    return
+                if self.path == "/api/sesion":
+                    usuario = base_datos.autenticar(datos.get("nombre"), datos.get("clave"))
+                    if not usuario:
+                        return self._json(401, {"error": "Usuario o contraseña incorrectos"})
+                    token = os.urandom(32).hex()
+                    sesiones[token] = usuario
+                    self._json(200, {"usuario": usuario}, "airtortilla_sesion={}; HttpOnly; SameSite=Strict; Path=/".format(token))
+                    return
+                usuario = self._usuario()
+                if not usuario:
+                    return self._json(401, {"error": "Inicia sesión para guardar cambios"})
+                if self.path == "/api/cambios":
+                    nombre = os.path.basename((datos.get("archivo") or "CSV pegado")[:200])
+                    accion = "PROCESAR_CSV"
+                    detalle = "{}: modalidad {}, {} reservas válidas y {} descartadas".format(
+                        nombre, datos.get("modo", "TOTAL"), int(datos.get("validas", 0)),
+                        int(datos.get("descartadas", 0)))
+                    with base_datos.conectar() as db:
+                        db.execute("INSERT INTO cambios(usuario_id,accion,detalle) VALUES(?,?,?)",
+                                   (usuario["id"], accion, detalle))
+                    return self._json(201, {"guardado": True})
+                self._json(404, {"error": "Ruta no encontrada"})
+            except (ValueError, TypeError, json.JSONDecodeError) as error:
+                self._json(400, {"error": str(error)})
+            except Exception as error:
+                if "UNIQUE constraint failed" in str(error):
+                    self._json(409, {"error": "Ese nombre de usuario ya existe"})
+                else:
+                    self._json(500, {"error": "No se pudo guardar la operación"})
 
         def log_message(self, *argumentos):
             pass

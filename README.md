@@ -10,6 +10,7 @@ Proyecto de la entrega "Entrega Proyecto Ficheros" de AirTortilla.
 | ---------- | ------- |
 | Marco | Interfaz web en HTML, log del proceso, vista previa y descarga de los ficheros, identificador unico y localizador de coincidencias, documentacion |
 | Sebas | Lectura del CSV de entrada, catalogo de paises e IATA, agrupacion por pais de destino y generacion de los ficheros AirTortilla_XX_YYYY_MM_DD, CSV de ejemplo y pruebas automaticas |
+| Persona 2 | Base de datos SQLite, usuarios y registro de operaciones |
 
 
 AirTortilla necesita repartir las reservas en ficheros independientes segun el
@@ -30,7 +31,7 @@ procedencia internacional de cada reserva.
 ## Stack
 
 HTML y JavaScript en un unico fichero, sin librerias externas y sin servidor.
-La entrega principal es index.html, se abre haciendo doble clic y ya funciona.
+La entrega principal es index.html y se abre haciendo doble clic.
 
 Como segunda version del mismo proyecto esta la implementacion en Python 3 con
 la libreria estandar, que hace lo mismo pero deja los ficheros escritos en el
@@ -74,6 +75,14 @@ python main.py web
 ```
 
 Abre http://127.0.0.1:8000 en el navegador
+
+La base de datos relacional se crea automáticamente en `data/airtortilla.db`.
+La API local permite crear usuarios (`POST /api/usuarios`, con `nombre` y
+`clave`), iniciar sesión (`POST /api/sesion`) y consultar los cambios
+(`GET /api/cambios`). Para guardar una operación se envía `POST /api/cambios`
+con la sesión iniciada y los campos `archivo`, `modo`, `validas` y
+`descartadas`. El historial guarda el usuario, fecha, acción y detalle. La
+base de datos local no se incluye en Git.
 
 Terminal
 
