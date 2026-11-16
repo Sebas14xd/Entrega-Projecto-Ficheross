@@ -916,8 +916,12 @@ function apiCuenta(ruta, metodo, datos){
   var opciones={method:metodo,credentials:"same-origin",headers:{"Content-Type":"application/json"}};
   if(datos) opciones.body=JSON.stringify(datos);
   return fetch(ruta,opciones).then(function(respuesta){
-    return respuesta.json().then(function(cuerpo){
-      if(!respuesta.ok) throw new Error(cuerpo.error || "No se pudo completar la operación");
+    var tipo = respuesta.headers.get("Content-Type") || "";
+    var promesa = tipo.indexOf("application/json") >= 0 ? respuesta.json() : respuesta.text().then(function(texto){
+      throw new Error("Respuesta no valida del servidor. Ejecuta python main.py web y abre http://127.0.0.1:8000.");
+    });
+    return promesa.then(function(cuerpo){
+      if(!respuesta.ok) throw new Error((cuerpo && cuerpo.error) || "No se pudo completar la operación");
       return cuerpo;
     });
   }).catch(function(error){
