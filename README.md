@@ -30,8 +30,9 @@ procedencia internacional de cada reserva.
 
 ## Stack
 
-HTML y JavaScript en un unico fichero, sin librerias externas y sin servidor.
-La entrega principal es index.html y se abre haciendo doble clic.
+La interfaz está en HTML y JavaScript sin librerías externas. El modo de
+procesamiento local puede abrirse con doble clic; para guardar cuentas e
+historial en SQLite hay que ejecutar el servidor Python.
 
 Como segunda version del mismo proyecto esta la implementacion en Python 3 con
 la libreria estandar, que hace lo mismo pero deja los ficheros escritos en el
@@ -43,8 +44,9 @@ disco dentro de data/salida. Sirve para ver el resultado en una carpeta.
 index.html
 ```
 
-Abre index.html con doble clic en cualquier navegador. No hay que instalar
-nada ni escribir ningun comando.
+Abre index.html con doble clic para procesar ficheros sin persistencia. Para
+que el alta y el inicio de sesión se guarden en la base de datos, ejecuta
+`python main.py web` y abre http://127.0.0.1:8000.
 
 En la pagina hay tres formas de darle el CSV
 
@@ -76,13 +78,29 @@ python main.py web
 
 Abre http://127.0.0.1:8000 en el navegador
 
-La base de datos relacional se crea automáticamente en `data/airtortilla.db`.
-La API local permite crear usuarios (`POST /api/usuarios`, con `nombre` y
-`clave`), iniciar sesión (`POST /api/sesion`) y consultar los cambios
-(`GET /api/cambios`). Para guardar una operación se envía `POST /api/cambios`
-con la sesión iniciada y los campos `archivo`, `modo`, `validas` y
-`descartadas`. El historial guarda el usuario, fecha, acción y detalle. La
-base de datos local no se incluye en Git.
+La base relacional se crea automáticamente en `data/airtortilla.db`. Desde
+esta interfaz, crear usuario e iniciar sesión guardan la cuenta en SQLite; al
+procesar un CSV, se guardan las reservas válidas y el historial de altas,
+cambios y procesamiento bajo el usuario conectado. Al usar `python main.py
+generar` desde terminal, el usuario se toma de la cuenta de
+Windows/macOS/Linux que ejecuta el programa. Se puede definir otro nombre con
+la variable `AIRTORTILLA_USUARIO`.
+
+Para integrarla con otra interfaz, el servidor local también permite crear
+cuentas con contraseña (`POST /api/usuarios`, JSON con `nombre` y `clave`),
+iniciar sesión (`POST /api/sesion`) y registrar procesos autenticados
+(`POST /api/procesar`). La sesión determina quién hizo el cambio. El historial
+se consulta con `GET /api/cambios` y las reservas con `GET /api/reservas`.
+Cada cambio de reserva conserva una copia de los valores anteriores y nuevos.
+Las contraseñas se guardan con PBKDF2 y sal aleatoria. El archivo local de la
+base de datos está excluido de Git.
+
+El esquema tiene tres tablas relacionadas: `usuarios` identifica al actor,
+`reservas` almacena los datos normalizados y `cambios` registra cada alta,
+modificación y proceso. Cada entrada del historial guarda fecha, usuario,
+reserva afectada y, cuando corresponde, los datos antes y después. SQLite
+aplica claves foráneas, restricciones e índices para las búsquedas del
+historial.
 
 Terminal
 
@@ -112,6 +130,7 @@ index.html                   ENTREGA PRINCIPAL, interfaz web completa en un solo
 main.py                      punto de entrada de la version en Python
 airtortilla/nucleo.py         lectura de CSV, catalogo IATA, agrupacion y ficheros
 airtortilla/nucleo.py EJEMPLO CSV de ejemplo con los casos de coincidencia
+airtortilla/base_datos.py persistencia SQLite, usuarios y auditoría
 data/salida/                  ficheros generados por la version Python
 tests/test_nucleo.py          pruebas automaticas de la version Python
 ```

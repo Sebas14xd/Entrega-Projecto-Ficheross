@@ -689,6 +689,7 @@ function procesar(todo){
     generado: new Date().toLocaleString("es-ES"),
     ficheros: ficheros,
     paises: Object.keys(resumenPaises).sort().map(function(k){ return resumenPaises[k]; }),
+    reservas_registradas: seleccionadas.filter(function(r){ return !r.errores.length; }).map(comoDiccionario),
     log: log,
     detalle: detalle,
     totales: {
@@ -895,7 +896,34 @@ function ejecutar(){
   avisos("OK Proceso finalizado en modalidad " + e.modo + ": " + e.ficheros.length +
     " fichero(s) generado(s), " + e.totales.coincidencias + " reserva(s) con localizador, " +
     e.totales.descartadas + " descartada(s)", "ok");
+  guardarProcesoEnBase(e);
   window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+}
+
+function guardarProcesoEnBase(e){
+  apiCuenta("/api/procesar", "POST", {archivo:e.origen || "CSV pegado", modo:e.modo,
+    reservas:e.reservas_registradas || [], descartadas:e.totales.descartadas})
+    .then(function(r){
+      avisos("Proceso guardado en la base de datos. Usuario: "+r.usuario+
+        "; "+r.altas+" altas y "+r.modificaciones+" modificaciones registradas.", "ok");
+    })
+    .catch(function(error){
+      avisos("El proceso terminó, pero no se guardó en la base de datos: "+error.message, "error");
+    });
+}
+
+function apiCuenta(ruta, metodo, datos){
+  var opciones={method:metodo,credentials:"same-origin",headers:{"Content-Type":"application/json"}};
+  if(datos) opciones.body=JSON.stringify(datos);
+  return fetch(ruta,opciones).then(function(respuesta){
+    return respuesta.json().then(function(cuerpo){
+      if(!respuesta.ok) throw new Error(cuerpo.error || "No se pudo completar la operación");
+      return cuerpo;
+    });
+  }).catch(function(error){
+    if(error instanceof TypeError) throw new Error("No hay conexión con el servidor. Ejecuta python main.py web y abre http://127.0.0.1:8000.");
+    throw error;
+  });
 }
 
 function elegirModalidad(elegida){
@@ -990,25 +1018,6 @@ document.getElementById("pegador").addEventListener("input", function(){
 </script>
 <script>
 (function(){
-  var CLAVE_USUARIOS = "airtortilla_usuarios";
-  var CLAVE_SESION = "airtortilla_sesion";
-  function cargarUsuarios(){
-    try {
-      var datos = JSON.parse(localStorage.getItem(CLAVE_USUARIOS) || "[]");
-      if (!datos.length) {
-        datos = [{ usuario: "admin", clave: "admin123" }];
-        localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(datos));
-      }
-      return datos;
-    } catch (e) {
-      var base = [{ usuario: "admin", clave: "admin123" }];
-      localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(base));
-      return base;
-    }
-  }
-  function guardarUsuarios(usuarios){
-    localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(usuarios));
-  }
   function mostrarApp(usuario){
     var login = document.getElementById("loginVista");
     var app = document.querySelector(".envoltorio");
@@ -1022,8 +1031,7 @@ document.getElementById("pegador").addEventListener("input", function(){
       barra.innerHTML = '<div class="login-user">Sesion iniciada: <strong id="usuarioActual"></strong></div><button class="boton secundario" id="btnSalir" type="button">Salir</button>';
       app.insertBefore(barra, app.firstChild);
       document.getElementById("btnSalir").addEventListener("click", function(){
-        localStorage.removeItem(CLAVE_SESION);
-        location.reload();
+        apiCuenta("/api/sesion","DELETE").finally(function(){location.reload();});
       });
     }
     var actual = document.getElementById("usuarioActual");
@@ -1041,43 +1049,34 @@ document.getElementById("pegador").addEventListener("input", function(){
     el.textContent = texto;
     el.className = "login-msg " + (tipo || "");
   }
-  cargarUsuarios();
-  var sesion = localStorage.getItem(CLAVE_SESION);
-  if (sesion) {
-    mostrarApp(sesion);
-  } else {
+  mostrarLogin();
+  apiCuenta("/api/yo","GET").then(function(r){
+    mostrarApp(r.usuario.nombre);
+  }).catch(function(){
     mostrarLogin();
-  }
+  });
   document.getElementById("btnLogin").addEventListener("click", function(){
     var usuario = (document.getElementById("loginUsuario").value || "").trim();
     var clave = document.getElementById("loginClave").value || "";
-    var usuarios = cargarUsuarios();
-    var valido = usuarios.some(function(u){ return u.usuario === usuario && u.clave === clave; });
-    if (valido) {
-      localStorage.setItem(CLAVE_SESION, usuario);
+    apiCuenta("/api/sesion","POST",{nombre:usuario,clave:clave}).then(function(r){
       mensaje("loginMsg", "Acceso correcto. Puedes entrar a la pagina.", "ok");
-      mostrarApp(usuario);
-    } else {
-      mensaje("loginMsg", "Usuario o contrasena incorrectos.", "error");
-    }
+      mostrarApp(r.usuario.nombre);
+      document.getElementById("loginClave").value="";
+    }).catch(function(error){mensaje("loginMsg",error.message,"error");});
   });
   document.getElementById("btnCrearUsuario").addEventListener("click", function(){
     var usuario = (document.getElementById("nuevoUsuario").value || "").trim();
     var clave = document.getElementById("nuevaClave").value || "";
-    if (!usuario || !clave) {
-      mensaje("crearMsg", "Escribe usuario y contrasena.", "error");
+    if (!usuario || clave.length < 8) {
+      mensaje("crearMsg", "Escribe un usuario y una contrasena de al menos 8 caracteres.", "error");
       return;
     }
-    var usuarios = cargarUsuarios();
-    if (usuarios.some(function(u){ return u.usuario === usuario; })) {
-      mensaje("crearMsg", "Ese usuario ya existe.", "error");
-      return;
-    }
-    usuarios.push({ usuario: usuario, clave: clave });
-    guardarUsuarios(usuarios);
-    document.getElementById("nuevoUsuario").value = "";
-    document.getElementById("nuevaClave").value = "";
-    mensaje("crearMsg", "Usuario creado correctamente.", "ok");
+    apiCuenta("/api/usuarios","POST",{nombre:usuario,clave:clave}).then(function(r){
+      document.getElementById("nuevoUsuario").value = "";
+      document.getElementById("nuevaClave").value = "";
+      mensaje("crearMsg", "Usuario creado y guardado en la base de datos.", "ok");
+      mostrarApp(r.usuario.nombre);
+    }).catch(function(error){mensaje("crearMsg",error.message,"error");});
   });
 })();
 </script>

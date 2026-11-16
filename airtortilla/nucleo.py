@@ -317,11 +317,20 @@ def lanzar_web(puerto=8000):
         def do_GET(self):
             if self.path == "/api/yo":
                 usuario = self._usuario()
+                if not usuario:
+                    return self._json(401, {"error": "Inicia sesión"})
                 return self._json(200, {"usuario": usuario})
             if self.path == "/api/cambios":
                 if not self._usuario():
-                    return self._json(401, {"error": "Inicia sesión para consultar el historial"})
+                    return self._json(401, {"error": "Inicia sesión"})
                 return self._json(200, {"cambios": base_datos.listar_cambios()})
+            if self.path == "/api/reservas":
+                if not self._usuario():
+                    return self._json(401, {"error": "Inicia sesión"})
+                with base_datos.conectar() as db:
+                    filas = [dict(r) for r in db.execute(
+                        "SELECT * FROM reservas ORDER BY fecha_reserva,id_reserva")]
+                return self._json(200, {"reservas": filas})
             with open(os.path.join(RAIZ, "index.html"), "rb") as manejador:
                 cuerpo = manejador.read()
             self.send_response(200)
@@ -332,6 +341,21 @@ def lanzar_web(puerto=8000):
         def do_POST(self):
             try:
                 datos = self._cuerpo()
+                if self.path == "/api/procesar":
+                    usuario = self._usuario()
+                    if not usuario:
+                        return self._json(401, {"error": "Inicia sesión para guardar el proceso"})
+                    reservas = datos.get("reservas", [])
+                    if not isinstance(reservas, list) or len(reservas) > 10000:
+                        return self._json(400, {"error": "La lista de reservas no es válida"})
+                    for reserva in reservas:
+                        if not isinstance(reserva, dict):
+                            return self._json(400, {"error": "Una reserva no tiene el formato esperado"})
+                    resultado = base_datos.registrar_proceso(
+                        datos.get("archivo", "CSV pegado"), datos.get("modo", "TOTAL"), reservas,
+                        usuario["id"],
+                        datos.get("descartadas", 0))
+                    return self._json(201, resultado)
                 if self.path == "/api/usuarios":
                     usuario = base_datos.crear_usuario(datos.get("nombre"), datos.get("clave"))
                     token = os.urandom(32).hex()
@@ -346,10 +370,10 @@ def lanzar_web(puerto=8000):
                     sesiones[token] = usuario
                     self._json(200, {"usuario": usuario}, "airtortilla_sesion={}; HttpOnly; SameSite=Strict; Path=/".format(token))
                     return
-                usuario = self._usuario()
-                if not usuario:
-                    return self._json(401, {"error": "Inicia sesión para guardar cambios"})
                 if self.path == "/api/cambios":
+                    usuario = self._usuario()
+                    if not usuario:
+                        return self._json(401, {"error": "Inicia sesión para guardar cambios"})
                     nombre = os.path.basename((datos.get("archivo") or "CSV pegado")[:200])
                     accion = "PROCESAR_CSV"
                     detalle = "{}: modalidad {}, {} reservas válidas y {} descartadas".format(
@@ -367,6 +391,16 @@ def lanzar_web(puerto=8000):
                     self._json(409, {"error": "Ese nombre de usuario ya existe"})
                 else:
                     self._json(500, {"error": "No se pudo guardar la operación"})
+
+        def do_DELETE(self):
+            if self.path != "/api/sesion":
+                return self._json(404, {"error": "Ruta no encontrada"})
+            cookies = SimpleCookie(self.headers.get("Cookie", ""))
+            cookie = cookies.get("airtortilla_sesion")
+            if cookie:
+                sesiones.pop(cookie.value, None)
+            self._json(200, {"cerrada": True},
+                       "airtortilla_sesion=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0")
 
         def log_message(self, *argumentos):
             pass
@@ -412,6 +446,25 @@ def main(argumentos=None):
     else:
         resultado = procesar(EJEMPLO, salida, es_texto=True, linea=linea or None)
         origen = "CSV de ejemplo"
+    reservas_bd = []
+    for reserva in resultado["reservas"]:
+        reservas_bd.append({
+            "id_reserva": reserva["id_reserva"],
+            "fecha_reserva": reserva["fecha"].isoformat() if reserva["fecha"] else "",
+            "origen": reserva["origen"],
+            "destino": reserva["destino"],
+            "destino_iata": reserva["iata"] or "",
+            "nombre_pasajero": reserva["nombre"],
+            "localizador": reserva["localizador"],
+            "coincidencia": reserva["coincidencia"],
+            "viajero_en_grupo": reserva["viajeros"],
+        } if not reserva["errores"] else {"id_reserva": reserva["id_reserva"]})
+    try:
+        resumen_bd = base_datos.registrar_proceso(origen, "LINEA" if linea else "TOTAL", reservas_bd)
+        print("Registro en base de datos: {0} | {1} altas | {2} modificaciones".format(
+            resumen_bd["usuario"], resumen_bd["altas"], resumen_bd["modificaciones"]))
+    except Exception as error:
+        print("No se pudo guardar el historial en la base de datos: {0}".format(error))
     print("Modo: {0}".format("LINEA" if linea else "TOTAL"))
     print("Fichero de entrada: {0}".format(origen))
     print("Directorio de salida: {0}".format(os.path.abspath(salida)))
