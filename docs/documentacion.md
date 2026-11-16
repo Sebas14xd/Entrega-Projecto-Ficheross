@@ -319,3 +319,14 @@ fichero por grupo
 | 1.1.0     | 2026-10-05 | index.html pasa a ser la entrega principal, interfaz web completa en un solo fichero sin servidor ni dependencias. Se corrige el catalogo de paises para los nombres con espacio y se reescribe el SHA-1 en JavaScript para que genere los mismos identificadores y localizadores que la version en Python. Se anade la descarga de todos los ficheros en un ZIP construido a mano |
 | 1.2.0     | 2026-10-07 | Se documenta la parte de Sebas en el apartado 0.1. Se anaden las pruebas automaticas de esa parte, que cubren la lectura del CSV en utf-8, cp1252 y latin-1, el catalogo de paises, la agrupacion por pais y fecha y el CSV de ejemplo |
 | 2.0.0     | 2026-10-07 | Se elimina todo CSV del repositorio, el CSV de ejemplo pasa a ser la constante EJEMPLO dentro del codigo. El paquete de nueve modulos pasa a ser un unico fichero airtortilla/nucleo.py sin comentarios y con la misma salida. El servidor Python deja de tener rutas propias y solo sirve index.html. La suite queda en 27 pruebas en un unico fichero |
+
+## 11 Usuarios y acceso
+
+He anadido una parte nueva en index.html para cumplir lo que se pedia de usuarios y login.
+
+- Hay una pantalla de inicio de sesion para entrar con usuario y contrasena.
+- Los empleados pueden iniciar sesion y, si los datos son correctos, pueden entrar a la pagina.
+- Se pueden crear usuarios nuevos desde la misma pantalla.
+- Si el usuario o la contrasena no son correctos, se muestra un mensaje de error. Si son correctos, se muestra que el acceso es correcto y se entra.
+
+Los usuarios se guardan en el navegador para poder probar el acceso. Al empezar hay un usuario de ejemplo: admin con contrasena admin123. No se ha cambiado nada de lo que ya hacia la pagina, solo se ha anadido esta parte de acceso.

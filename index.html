@@ -142,9 +142,41 @@ details summary { cursor: pointer; color: #7dd3fc; font-size: 14px; margin-botto
 .fuentes { font-size: 12.5px; color: #64748b; }
 .fuentes code { color: #7dd3fc; }
 .pie { text-align: center; color: #64748b; font-size: 12.5px; margin-top: 26px; }
+#loginVista { max-width: 460px; margin: 40px auto; }
+.login-card { background: #111c33; border: 1px solid #24324f; border-radius: 12px; padding: 20px; margin-bottom: 18px; }
+.login-card h2 { margin: 0 0 14px 0; font-size: 18px; color: #7dd3fc; }
+.login-msg { margin-top: 10px; font-size: 13px; color: #94a3b8; }
+.login-msg.ok { color: #86efac; }
+.login-msg.error { color: #fca5a5; }
+.login-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; gap:12px; flex-wrap:wrap; }
+.login-user { font-size:13px; color:#94a3b8; }
 </style>
 </head>
 <body>
+<div id="loginVista">
+  <div class="cabecera">
+    <h1>AirTortilla</h1>
+    <p>Acceso de empleados</p>
+  </div>
+  <div class="login-card">
+    <h2>Iniciar sesion</h2>
+    <label>Usuario</label>
+    <input type="text" id="loginUsuario">
+    <label>Contrasena</label>
+    <input type="password" id="loginClave">
+    <button class="boton" id="btnLogin" type="button">Entrar</button>
+    <div id="loginMsg" class="login-msg"></div>
+  </div>
+  <div class="login-card">
+    <h2>Crear usuario</h2>
+    <label>Nuevo usuario</label>
+    <input type="text" id="nuevoUsuario">
+    <label>Nueva contrasena</label>
+    <input type="password" id="nuevaClave">
+    <button class="boton azul" id="btnCrearUsuario" type="button">Crear usuario</button>
+    <div id="crearMsg" class="login-msg"></div>
+  </div>
+</div>
 <div class="envoltorio">
 
 <div class="cabecera">
@@ -955,6 +987,99 @@ document.getElementById("pegador").addEventListener("input", function(){
     document.getElementById("nombreFichero").value = "contenido_pegado.csv";
   }
 });
+</script>
+<script>
+(function(){
+  var CLAVE_USUARIOS = "airtortilla_usuarios";
+  var CLAVE_SESION = "airtortilla_sesion";
+  function cargarUsuarios(){
+    try {
+      var datos = JSON.parse(localStorage.getItem(CLAVE_USUARIOS) || "[]");
+      if (!datos.length) {
+        datos = [{ usuario: "admin", clave: "admin123" }];
+        localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(datos));
+      }
+      return datos;
+    } catch (e) {
+      var base = [{ usuario: "admin", clave: "admin123" }];
+      localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(base));
+      return base;
+    }
+  }
+  function guardarUsuarios(usuarios){
+    localStorage.setItem(CLAVE_USUARIOS, JSON.stringify(usuarios));
+  }
+  function mostrarApp(usuario){
+    var login = document.getElementById("loginVista");
+    var app = document.querySelector(".envoltorio");
+    if (login) login.style.display = "none";
+    if (app) app.style.display = "";
+    var barra = document.getElementById("barraSesion");
+    if (!barra && app) {
+      barra = document.createElement("div");
+      barra.id = "barraSesion";
+      barra.className = "login-top";
+      barra.innerHTML = '<div class="login-user">Sesion iniciada: <strong id="usuarioActual"></strong></div><button class="boton secundario" id="btnSalir" type="button">Salir</button>';
+      app.insertBefore(barra, app.firstChild);
+      document.getElementById("btnSalir").addEventListener("click", function(){
+        localStorage.removeItem(CLAVE_SESION);
+        location.reload();
+      });
+    }
+    var actual = document.getElementById("usuarioActual");
+    if (actual) actual.textContent = usuario;
+  }
+  function mostrarLogin(){
+    var login = document.getElementById("loginVista");
+    var app = document.querySelector(".envoltorio");
+    if (login) login.style.display = "";
+    if (app) app.style.display = "none";
+  }
+  function mensaje(id, texto, tipo){
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = texto;
+    el.className = "login-msg " + (tipo || "");
+  }
+  cargarUsuarios();
+  var sesion = localStorage.getItem(CLAVE_SESION);
+  if (sesion) {
+    mostrarApp(sesion);
+  } else {
+    mostrarLogin();
+  }
+  document.getElementById("btnLogin").addEventListener("click", function(){
+    var usuario = (document.getElementById("loginUsuario").value || "").trim();
+    var clave = document.getElementById("loginClave").value || "";
+    var usuarios = cargarUsuarios();
+    var valido = usuarios.some(function(u){ return u.usuario === usuario && u.clave === clave; });
+    if (valido) {
+      localStorage.setItem(CLAVE_SESION, usuario);
+      mensaje("loginMsg", "Acceso correcto. Puedes entrar a la pagina.", "ok");
+      mostrarApp(usuario);
+    } else {
+      mensaje("loginMsg", "Usuario o contrasena incorrectos.", "error");
+    }
+  });
+  document.getElementById("btnCrearUsuario").addEventListener("click", function(){
+    var usuario = (document.getElementById("nuevoUsuario").value || "").trim();
+    var clave = document.getElementById("nuevaClave").value || "";
+    if (!usuario || !clave) {
+      mensaje("crearMsg", "Escribe usuario y contrasena.", "error");
+      return;
+    }
+    var usuarios = cargarUsuarios();
+    if (usuarios.some(function(u){ return u.usuario === usuario; })) {
+      mensaje("crearMsg", "Ese usuario ya existe.", "error");
+      return;
+    }
+    usuarios.push({ usuario: usuario, clave: clave });
+    guardarUsuarios(usuarios);
+    document.getElementById("nuevoUsuario").value = "";
+    document.getElementById("nuevaClave").value = "";
+    mensaje("crearMsg", "Usuario creado correctamente.", "ok");
+  });
+})();
 </script>
 </body>
 </html>
